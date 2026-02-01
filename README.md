@@ -28,8 +28,7 @@ An AI Dungeon script for adding a variety of tools and utilities to a scenario. 
 - /snapshot [distance] [focus] or /s [distance] [focus]
 - Examples: "/snapshot", "/snapshot 2", "/snapshot Emily", "/snapshot 2 Emily"
 - Default distance: 3 (mid-range) - default focus: the protagonist
-- Distance number to distance text conversion:
-[0: "internal", 1: "extremely close", 2: "nearby", 3: "mid-range", 4: "bird's eye"]
+- Distance number to distance text conversion: [0: "internal", 1: "extremely close", 2: "nearby", 3: "mid-range", 4: "bird's eye"]
 
 💭 Mindview
 > Provides a detailed depiction of the subject's mind, focusing on a specific sense.
@@ -38,8 +37,7 @@ An AI Dungeon script for adding a variety of tools and utilities to a scenario. 
 - /mindview [sense] [subject] or /m [sense] [subject]
 - Examples: "/mindview", "/mindview hearing", "/mindview Emily", "/mindview hearing Emily"
 - Default sense: thought - default subject: the protagonist
-- Available senses:
-["thought", "emotion", "feeling", "sight", "hearing", "smell", "touch", "taste"]
+- Available senses: ["thought", "emotion", "feeling", "sight", "hearing", "smell", "touch", "taste"]
 
 ⏩ Fast Forward
 > Moves the story forward to the provided destination (which can be a location or an event).
