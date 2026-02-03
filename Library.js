@@ -19,7 +19,8 @@
  *
  * Each tool is controlled by commands entered into Do or Say, such as /cyoa
  * For more information on each tool and Toolbox in general, use /help or
- * check the Readme
+ * check the Readme: 
+ * https://github.com/FaraC-scripts/Toolbox/blob/main/README.md
  */
 
 
@@ -93,7 +94,7 @@ const DEFAULT_SETTINGS = {
         pin_config_card: false, // Removes and re-adds card every action to "pin" it
         tool_output_length: 150, // Base number of words requested for tool output
         cyoa_option_length: 15, // Number of words requested for each CYOA option
-        floating_prompt_distance: 12 // How far back prompt cards are inserted
+        floating_prompt_distance: 16 // How far back prompt cards are inserted
     },
     hide_outputs_from_ai: { // Whether these tools' outputs are hidden from context
         snapshot: true,
@@ -281,7 +282,7 @@ function handleToolboxInput() {
 
 // Manages control flow in the context phase.
 function handleToolboxContext() {
-    // try{
+    try{
         // AI Dungeon is odd and doesn't create the stop parameter on its own,
         // and will also throw an error if one is not created.
         globalThis.stop ??= false;
@@ -306,9 +307,6 @@ function handleToolboxContext() {
         // Count the total characters in the filtered context to calculate stats later
         state.filteredContextLength = lines.length - 1
         lines.forEach(l => state.filteredContextLength += l.length)
-        // Generates a floating prompt and inserts it into the lines
-        // floating_prompt_distance number of lines from the front
-        insertFloatingPrompt(lines);
         // Finds and sets the active tool based on the last line of context.
         const tool = getActiveTool(lastLine);
         // If a tool is active, runs the apropriate context phase function
@@ -327,15 +325,15 @@ function handleToolboxContext() {
             globalThis.text = ABORT_OUTPUT;
             return;
         };
-    // } catch (e) {
-    //     // Fallback error if there's a context error that isn't caught elsewhere.
-    //     state.errorLog.push({
-    //         name: "Context Error",
-    //         message:  "Something went wrong in the Context phase, and it didn't fall under a more specific error. Oops!"
-    //     })
-    //     globalThis.text = ABORT_OUTPUT;
-    //     return;
-    // };
+    } catch (e) {
+        // Fallback error if there's a context error that isn't caught elsewhere.
+        state.errorLog.push({
+            name: "Context Error",
+            message:  "Something went wrong in the Context phase, and it didn't fall under a more specific error. Oops!"
+        })
+        globalThis.text = ABORT_OUTPUT;
+        return;
+    };
     // Conditionally passes control to Inner Self
     if (state.runInnerSelf) InnerSelf("context");
 }
@@ -993,7 +991,7 @@ function parseInitialPrompt() {
                 // Finds the perspective from the style guide. The default is 2nd.
                 // This changes it if it's different, and checks multiple formats.
                 if (k === "style_guide") {
-                    const p = prompt[k]?.perspective?.toLowerCase() || ""
+                    const p = prompt[k]?.perspective?.toLowerCase() || "";
                     if (
                         p.includes ("first") 
                         || p.includes("1")
@@ -1338,7 +1336,8 @@ function addSettingsCard(settings = DEFAULT_SETTINGS) {
 
 // Inserts a formatted floating prompt containing story bible prompts 
 // and protagonist info at a specified position within the context.
-function insertFloatingPrompt(lines) {
+function insertFloatingPrompt(text) {
+    let lines = text.split("\n")
     // Construct the floating prompt string
     const floatingPrompt = 
 `{"story_bible":{${storyCards
@@ -1357,6 +1356,7 @@ function insertFloatingPrompt(lines) {
     // Insert the floating prompt
     // This modifies the original array
     lines.splice(distance, 0, floatingPrompt);
+    return lines.join("\n")
 }
 
 /**
@@ -1887,6 +1887,15 @@ Info
 - Note: this method does not account for Inner Self.`;
 
 const HELP_TEXT = `🧰 Toolbox v2.0 Operation Manual 🧰
+For more information about the scripts that make Toolbox work:
+https://github.com/FaraC-scripts/Toolbox
+
+⚙️ Recommended Model Settings
+> Model: DeepSeek 3.2
+> Context Length: 3000+ (Gameplay -> Story Generator -> Memory System)
+- If you are also using Inner Self, Context Length should be 4000+
+> Response Length: 200 (Gameplay -> Story Generator -> Model Settings)
+> Raw Model Output: On (Gameplay -> Testing & Feedback)
 
 🌍 Overview
 > Toolbox has active and passive features.
