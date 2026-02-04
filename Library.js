@@ -260,7 +260,7 @@ function handleToolboxInput() {
                 name: "Command Input Error",
                 message: `unrecognized command entered: /${command}` 
             });
-            globalThis.text = `> Error: /${command} is not a recognized command.\n"`;
+            globalThis.text = `> ⛔ Error: /${command} is not a recognized command.\n"`;
             return;
         }
         // Control should not pass to Inner Self if Toolbox encounters an error.
@@ -273,7 +273,7 @@ function handleToolboxInput() {
             name: "Input Error",
             message: "Something went wrong in the Input phase, and it didn't fall under a more specific error. Oops!"
         });
-        globalThis.text = "> Error: Unspecified Input Error";
+        globalThis.text = "> ⛔ Error: Unspecified Input Error";
         return;
     }
     // Conditionally passes control to Inner Self
@@ -318,8 +318,6 @@ function handleToolboxContext() {
         // assigns the combined lines as the global text value,
         // here meaning what gets sent to the AI
         globalThis.text = lines.join("\n");
-        // Final bit needed for stat calculation
-        state.finalContextLength = globalThis.text.length
         // final error check in the context phase
         if (state.errorLog.length > 0){
             globalThis.text = ABORT_OUTPUT;
@@ -461,7 +459,7 @@ function handleCyoaChoiceInput(tool, command, args) {
             name: "Command Input Error",
             message: "CYOA option choice command (\"/a\", \"/b\", \"/c\", \"/d\") entered without CYOA options present. Make sure you've used /cyoa first, and that the bulleted choices are the most recent output when you use an option choice command."
         });
-        return `> Error: /${command} must be used immediately after /cyoa to select an option.\n`;
+        return `> ⛔ Error: /${command} must be used immediately after /cyoa to select an option.\n`;
     };
     // Returns the CYOA choice minus the bit that says "• A." or the like
     return `${newlineIfRequired()}[${lastChoiceLine.substring(5)}]\n`;
@@ -573,7 +571,7 @@ function handleProtagonistInput(tool, command, args) {
             name: "Missing Argument Error",
             message: "\"/protagonist\" requires an argument: the name of the character who will be made the story's perspective character / protagonist."
         });;
-        return "> Error: \"/protagonist\" requires an argument\n";
+        return "> ⛔ Error: \"/protagonist\" requires an argument\n";
     };
     return composeInput(tool, args);
 }
@@ -891,12 +889,12 @@ function snakeToTitle(snake) {
     return titleWords.join(' ');
 }
 
-// This way around is so much easier :D
 function titleToSnake(title) {
-    // Just make it all lower case and replace spaces with underscores
     return title
-        .toLowerCase()
-        .replace(/\s+/g, '_');
+        .toLowerCase() // Make it all lower case
+        .replace(/\s+/g, '_') // Replace spaces with underscore first
+        .replace(/[^a-z0-9_]/g, '') // Then remove all non-alphanumeric characters except underscores
+        .replace(/^[0-9]+/, ''); // Remove leading numbers
 }
 
 // Uses the dark magic of regex to extract a name from a string
@@ -1356,7 +1354,9 @@ function insertFloatingPrompt(text) {
     // Insert the floating prompt
     // This modifies the original array
     lines.splice(distance, 0, floatingPrompt);
-    return lines.join("\n")
+    const finalText = lines.join("\n")
+    state.finalContextLength = finalText.length
+    return finalText
 }
 
 /**
@@ -1503,7 +1503,7 @@ function parseRawOutput(text) {
 // Extracts filtered lines from input text and identifies the last line
 function linesFromText(text, isCard) {
     // Build filter patterns for lines to exclude
-    const filters = ["//", "> Error", ">>>", "/AC"]
+    const filters = ["//", "> ⛔ Error", ">>>", "/AC"]
         .concat(
             state.TOOLS
                 .map(f => f.sym)              // Extract symbol from each tool
@@ -1621,7 +1621,7 @@ function updateStats(){
             // Calculate the stats we need
             const tokensAdded =  Math.floor(
                 (state.finalContextLength 
-                - state.filteredContextLength)/4
+                - state.rawContextLength)/4
             )
             const tokensRemoved = Math.floor(
                 (state.rawContextLength 
@@ -1960,7 +1960,7 @@ https://github.com/FaraC-scripts/Toolbox
 - The assembled prompt is injected a number of lines behind the last line of context determined by the Floating Prompt Distance setting in the Toolbox Configuration story card.
 
 > Cleaning and Filtering
-- Toolbox filters out lines that start with "//", "> Error", ">>>", "/AC", and various tool-specific words and phrases from context.
+- Toolbox filters out lines that start with "//", "> ⛔ Error", ">>>", "/AC", and various tool-specific words and phrases from context.
 - The AI will not see these lines.
 - Toolbox cleans outputs, trimming hanging sentence fragments and ensuring proper spacing between context and output.
 - This allows the user to play normally and with minimal text loss while keeping Raw Outputs Enabled on (Gameplay -> Testing and Feedback)
