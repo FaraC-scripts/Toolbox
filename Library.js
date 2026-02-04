@@ -94,7 +94,8 @@ const DEFAULT_SETTINGS = {
         pin_config_card: false, // Removes and re-adds card every action to "pin" it
         tool_output_length: 150, // Base number of words requested for tool output
         cyoa_option_length: 15, // Number of words requested for each CYOA option
-        floating_prompt_distance: 16 // How far back prompt cards are inserted
+        floating_prompt_distance: 16, // How far back prompt cards are inserted
+        enable_scripted_token_use_warning: true
     },
     hide_outputs_from_ai: { // Whether these tools' outputs are hidden from context
         snapshot: true,
@@ -103,9 +104,9 @@ const DEFAULT_SETTINGS = {
     info: {
         protagonist: "the protagonist", // Used for various default arguments
         // The approximate number of tokens added to the context this turn
-        tokens_added_to_context_by_toolbox: 0, 
+        tokens_added_to_context: 0, 
         // The approximaten umber of tokens removed from context this turn
-        tokens_removed_from_context_by_toolbox: 0,
+        tokens_removed_from_context: 0,
         // The approximate net effect of Toolbox this turn
         net_effect_on_context_size: 0
     }
@@ -291,8 +292,9 @@ function handleToolboxContext() {
             globalThis.text = ABORT_OUTPUT;
             return;
         };
-        // Store this to calculate stats later
+        // Store these to calculate stats later
         state.rawContextLength = globalThis.text.length
+        state.maxChars = info.maxChars;
         // If there wasn't an input, do some required actions here
         if (!state.inputOccurred) {
             state.runInnerSelf = true;
@@ -305,8 +307,8 @@ function handleToolboxContext() {
         // as well as the unfiltered last line of the context.
         let [lines, lastLine] = linesFromText(globalThis.text);
         // Count the total characters in the filtered context to calculate stats later
-        state.filteredContextLength = lines.length - 1
-        lines.forEach(l => state.filteredContextLength += l.length)
+        state.filteredContextLength = lines.length - 1;
+        lines.forEach(l => state.filteredContextLength += l.length);
         // Finds and sets the active tool based on the last line of context.
         const tool = getActiveTool(lastLine);
         // If a tool is active, runs the apropriate context phase function
@@ -359,8 +361,48 @@ function handleToolboxOutput() {
             // if there is an active tool
             globalThis.text = outputSwitch(tool);
         }
-        // Update the configuration card with collected stats
+        // Update the configuration card info section
         updateStats()
+        log(state.maxChars)
+        if (state.settings.general_settings.enable_scripted_token_use_warning) {
+            const tokensAvailable = Math.floor((state.maxChars)/4);
+            const tokensAdded = state.settings.info
+                .tokens_added_to_context;
+            const percent = Math.floor((tokensAdded/tokensAvailable)*100);
+            state.lastWarning ??= -3;
+            if (
+                percent > 60 
+                && percent < 100 
+                && info.actionCount >= state.lastWarning + 5
+            ) {
+                state.lastWarning = info.actionCount;
+                globalThis.text += `
+
+// ⚠️ SCRIPTED TOKEN USE WARNING ⚠️
+// Scripts are adding ${tokensAdded} tokens to context, taking up an estimated ${percent}% of avialable context.
+// You may encounter inconsistencies: the AI may ignore you or behave erratically.
+// What to do to free up context:
+// - Turn off Inner Self, if it is on. It can sometimes use a lot of context.
+// - Go to Story Cards and reduce the size of longer entries in Prompt cards.
+// - Delete less important Prompt story cards.
+// This warning will only appear at most once every 5 turns. It can be turned off in the Configure Toolbox story card.
+
+`;
+            };
+        if (percent >= 100) globalThis.text +=  `
+
+> ⛔ Error: SCRIPTED TOKEN USE OVERFLOW ⛔
+// Scripts are adding ${tokensAdded} tokens to context, taking up an estimated ${percent}% of avialable context.
+// Most of the story will be pushed out. Instructions and prompts will get cut off.
+// Expect strange behavior and very poor AI performance.
+// What to do to free up context:
+// - Turn off Inner Self, if it is on. It can sometimes use a lot of context.
+// - Go to Story Cards and reduce the size of longer entries in Prompt cards.
+// - Delete less important Prompt story cards.
+// This error message can be turned off in the Configure Toolbox story card.
+
+`
+        }
     } catch(e) {
         // Fallback error if there's an output error that isn't caught elsewhere.
         state.errorLog.push({
@@ -657,9 +699,6 @@ function handleVignetteOutput(tool) {
     // How a vignette's output is formatted depends on if it is meant to be hidden
     // from the AI
     if (state.settings.hide_outputs_from_ai[tool.name]) {
-        // This output will be hidden, so update the apropriate stats
-        state.rawContextLength += globalThis.text.length
-        state.finalContextLength += globalThis.text.length
         // If so, add the tool's symbols to each line of the tool's output
         // to mark those lines for filtering by linesFromText()
         return addSymbolToLines(
@@ -1215,7 +1254,7 @@ function updateSettings(newProtagonist = null) {
     const MIN_VALUES = {
         tool_output_length: 10,
         cyoa_option_length: 5,
-        floating_prompt_distance: 0
+        floating_prompt_distance: 10
     };
     // Locate the "Configure Toolbox" settings card from the storyCards array
     let card;
@@ -1354,9 +1393,9 @@ function insertFloatingPrompt(text) {
     // Insert the floating prompt
     // This modifies the original array
     lines.splice(distance, 0, floatingPrompt);
-    const finalText = lines.join("\n")
-    state.finalContextLength = finalText.length
-    return finalText
+    const finalText = lines.join("\n");
+    state.finalContextLength = finalText.length;
+    return finalText;
 }
 
 /**
@@ -1621,7 +1660,7 @@ function updateStats(){
             // Calculate the stats we need
             const tokensAdded =  Math.floor(
                 (state.finalContextLength 
-                - state.rawContextLength)/4
+                - state.filteredContextLength)/4
             )
             const tokensRemoved = Math.floor(
                 (state.rawContextLength 
@@ -1630,9 +1669,12 @@ function updateStats(){
             // Make the settings into an object for easier data manpulation
             const card = stringToObject(c.entry, true)
             // Set statistics
-            card.info.tokens_added_to_context_by_toolbox = tokensAdded
-            card.info.tokens_removed_from_context_by_toolbox = tokensRemoved
+            card.info.tokens_added_to_context = tokensAdded
+            state.settings.general_settings.tokens_added_to_context = tokensAdded
+            card.info.tokens_removed_from_context = tokensRemoved
+            state.settings.general_settings.tokens_removed_from_context = tokensRemoved
             card.info.net_effect_on_context_size = tokensAdded - tokensRemoved
+            state.settings.general_settings.net_effect_on_context_size = tokensAdded - tokensRemoved
             c.entry = stringifyNestedObject(card, true, true)
         }
     }
@@ -1850,6 +1892,11 @@ General Settings
 - It is then placed behind this many paragraphs of context.
 - If there aren't this many paragraphs, the prompt is placed at the top.
 
+> Enable Scripted Token Use Warning
+- (true or false)
+- If enabled, you will get a warning message when the total number of tokens added by Toolbox, Inner Self, and Auto Cards are greater than 60% of available cotext.
+- When you get this warning, you are increasingly in danger of having issues with the AI keeping track of the story.
+
 Hide Outputs From AI
 - (true or false)
 - Each tool listed defaults to hiding its outputs from the AI.
@@ -1869,13 +1916,11 @@ Info
 - However, it will not necessarily change who the story focuses on.
 - For that, enter the following command in Do or Say: /p New Protagonist Name
 
-> Tokens Added to Context by Toolbox
+> Tokens Added to Context
 - (number)
-- Tracks how many tokens Toolbox added to context last turn.
-- Typically includes Prompt story cards and tool-specific instructions.
-- Note: This does not count tokens added by Inner Self or AI Dungeon.
+- Tracks how many tokens scripts (Toolbox, Inner Self, and Auto Cards) added to context last turn.
 
-> Tokens Removed from Context by Toolbox
+> Tokens Removed from Context
 - (number)
 - Tracks how many tokens Toolbox removed from context last turn.
 - Typically these are comments starting with "//", the input lines from tool activations, and certain toolbox outputs, such as CYOA options and hidden outputs (those bracketed by special symbols). 
@@ -1883,8 +1928,7 @@ Info
 > Net Effect on Context Size
 - (number)
 - Tokens added minus tokens removed.
-- When this number is added to the token count AI Dungeon gives you when you view context, it should be close to the actual number of tokens sent to the AI; the number that counts against your token limit.
-- Note: this method does not account for Inner Self.`;
+- When this number is added to the token count AI Dungeon gives you when you view context, it should be close to the actual number of tokens sent to the AI; the number that counts against your token limit.`;
 
 const HELP_TEXT = `🧰 Toolbox v2.0 Operation Manual 🧰
 For more information about the scripts that make Toolbox work:
