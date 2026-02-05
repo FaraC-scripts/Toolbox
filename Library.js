@@ -1397,6 +1397,11 @@ function insertFloatingPrompt(text) {
     );
     // If smart insertion is enabled
     if (state.settings.general_settings.smart_prompt_insertion) {
+        const skipPairs = {
+            "</SYSTEM>": "<SYSTEM>",
+            "</BRAIN>": "<BRAIN>",
+            "[Execute ai_instruction_override]": "{\"ai_instruction_override\":"
+        }
         // See how many characters are available in context after the prompt length
         // This number is capped to prevent the prompt from being too far back with large contexts
         let availableChars = Math.min(state.maxChars, 24000) - floatingPrompt.length;
@@ -1406,31 +1411,21 @@ function insertFloatingPrompt(text) {
             // If we're past the character limit, stop and use the latest position
             if (availableChars <= 0) break;
             if (i > skipTo) continue;
-            // Never put the floating prompt inside an IS system block
-            if (lines[i] === "</SYSTEM>") {
-                // We'll start just after the block if it's too big
-                position = i;
-                for (let j = i; j >= 0; j--) {
-                    availableChars -= lines[j].length;
-                    if (lines[j] === "<SYSTEM>") {
-                        skipTo = j - 1;
-                        break;
+            for (skip of Object.keys(skipPairs)) {
+                if (lines[i].includes(skip)) {
+                    // We'll start just after the block if it's too big
+                    position = i;
+                    let charTally = 0;
+                    for (let j = i; j >= 0; j--) {
+                        charTally += lines[j].length;
+                        if (lines[j].includes(skipPairs[skip])) {
+                            availableChars -= charTally;
+                            skipTo = j - 1;
+                            break;
+                        };
                     };
-                };
-                continue;
-            };
-            // Never put the floating prompt inside a Toolbox instruction set
-            if (lines[i] === "[Execute ai_instruction_override]") {
-                // We'll start just after the block if it's too big
-                position = i;
-                for (let j = i; j >= 0; j--) {
-                    availableChars -= lines[j].length;
-                    if (lines[j].startsWith("{\"ai_instruction_override\":")) {
-                        skipTo = j - 1;
-                        break;
-                    };
-                };
-                continue;
+                    continue;                    
+                }
             };
             position = i;
             availableChars -= lines[i].length;
@@ -1546,7 +1541,7 @@ function changeStoryBibleProtagonist(newProtagonist, oldProtagonist) {
             // Remove the new protagonist from supporting characters (if present)
             characters = characters.filter(c => c !== newProtagonist)
             // Add the old protagonist to the supporting characters list
-            characters.push(oldProtagonist)
+            if (!characters.includes(oldProtagonist)) characters.push(oldProtagonist)
             // Update the card object with modified character information:
             card.overview.supporting_characters = characters.join(", ")
             card.overview.protagonist = newProtagonist
@@ -3563,7 +3558,7 @@ function InnerSelf(hook) {
          * @returns {string} Formatted brain context block
          */
         const bindSelf = (joined = "") => ((mind.length = 0) || (joined === "")) ? "\n\n" : (
-            `\n\n# ${ownership(agent.name)} brain and inner self: [\n${joined}\n]\n\n`
+            `\n\n# ${ownership(agent.name)} brain and inner self: <BRAIN>\n${joined}\n</BRAIN>\n\n`
         );
         // Check if the current turn is a retry or erase + continue following a previous task completion
         if (IS.hash === historyHash()) {
