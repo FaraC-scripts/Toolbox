@@ -95,7 +95,7 @@ const DEFAULT_SETTINGS = {
         tool_output_length: 150, // Base number of words requested for tool output
         cyoa_option_length: 15, // Number of words requested for each CYOA option
         smart_prompt_insertion: true, // Whether auto-insertion logic is used
-        floating_prompt_distance: 16, // How far back prompt cards are inserted
+        floating_prompt_distance: 16, // How far back prompt cards are inserted if not using smart insertion
         enable_scripted_token_use_warning: true 
     },
     hide_outputs_from_ai: { // Whether these tools' outputs are hidden from context
@@ -1956,11 +1956,18 @@ General Settings
 - As this is increased, options become more detailed (often detrimentally)
 - If is set too high, the output may contain fewer than four options.
 
+> Smart Prompt Insertion
+- (true or false)
+- If enabled, uses intelligent handling to place the floating prompt.
+- The floating prompt is assembled from story cards with the Prompt type.
+- The prompt will be inserted as far back as possible while remaining within context.
+- It will avoid placement inside of other data structures (placed by Toolbox commands or Inner Self)
+- It will place itself no further than 6000 tokens back in context.
+
 > Floating Prompt Distance
 - (number, 0+)
-- Changes how far back the floating prompt is inserted.
-- The floating prompt is assembled from story cards with the Prompt type.
-- It is then placed behind this many paragraphs of context.
+- Changes how far back the floating prompt is inserted if smart insertion is disabled.
+- It will be placed behind this many paragraphs of context.
 - If there aren't this many paragraphs, the prompt is placed at the top.
 
 > Enable Scripted Token Use Warning
