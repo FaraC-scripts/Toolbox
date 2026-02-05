@@ -94,8 +94,9 @@ const DEFAULT_SETTINGS = {
         pin_config_card: false, // Removes and re-adds card every action to "pin" it
         tool_output_length: 150, // Base number of words requested for tool output
         cyoa_option_length: 15, // Number of words requested for each CYOA option
+        smart_prompt_insertion: true, // Whether auto-insertion logic is used
         floating_prompt_distance: 16, // How far back prompt cards are inserted
-        enable_scripted_token_use_warning: true
+        enable_scripted_token_use_warning: true 
     },
     hide_outputs_from_ai: { // Whether these tools' outputs are hidden from context
         snapshot: true,
@@ -292,6 +293,10 @@ function handleToolboxContext() {
             globalThis.text = ABORT_OUTPUT;
             return;
         };
+        if (!state.update2) {
+            state.update2 = true;
+            state.settingsString = "";
+        }
         // Store these to calculate stats later
         state.rawContextLength = globalThis.text.length
         state.maxChars = info.maxChars;
@@ -363,7 +368,6 @@ function handleToolboxOutput() {
         }
         // Update the configuration card info section
         updateStats()
-        log(state.maxChars)
         if (state.settings.general_settings.enable_scripted_token_use_warning) {
             const tokensAvailable = Math.floor((state.maxChars)/4);
             const tokensAdded = state.settings.info
@@ -1254,7 +1258,7 @@ function updateSettings(newProtagonist = null) {
     const MIN_VALUES = {
         tool_output_length: 10,
         cyoa_option_length: 5,
-        floating_prompt_distance: 10
+        floating_prompt_distance: 0
     };
     // Locate the "Configure Toolbox" settings card from the storyCards array
     let card;
@@ -1336,6 +1340,7 @@ function updateSettings(newProtagonist = null) {
                 }
             }
             // Ensure all expected settings exist, filling missing ones with defaults
+            removeUnusedProperties(state.settings, DEFAULT_SETTINGS)
             normalizeObject(state.settings, DEFAULT_SETTINGS);
         } catch(e) {
             // If parsing fails, revert to default settings
@@ -1374,7 +1379,7 @@ function addSettingsCard(settings = DEFAULT_SETTINGS) {
 // Inserts a formatted floating prompt containing story bible prompts 
 // and protagonist info at a specified position within the context.
 function insertFloatingPrompt(text) {
-    let lines = text.split("\n")
+    const lines = text.split("\n")
     // Construct the floating prompt string
     const floatingPrompt = 
 `{"story_bible":{${storyCards
@@ -1384,15 +1389,57 @@ function insertFloatingPrompt(text) {
         ).slice(1, -1)                  // Remove outer curly braces
 )}}}
 {"protagonist": ${state.settings.info.protagonist}}`;
-    // Determine insertion distance 
-    let distance = Math.max(
+    // Determine insertion distance if not using smart insertion. Also serves as a fallback if smart insertion fails.
+    let position = Math.max(
         lines.length - 1 
         - state.settings.general_settings.floating_prompt_distance,
         0
     );
+    // If smart insertion is enabled
+    if (state.settings.general_settings.smart_prompt_insertion) {
+        // See how many characters are available in context after the prompt length
+        // This number is capped to prevent the prompt from being too far back with large contexts
+        let availableChars = Math.min(state.maxChars, 24000) - floatingPrompt.length;
+        let skipTo = lines.length - 1;
+        // Iterate through the lines backwards, tallying char count to see where to place the prompt
+        for (let i = lines.length - 1; i >= 0; i--) {
+            // If we're past the character limit, stop and use the latest position
+            if (availableChars <= 0) break;
+            if (i > skipTo) continue;
+            // Never put the floating prompt inside an IS system block
+            if (lines[i] === "</SYSTEM>") {
+                // We'll start just after the block if it's too big
+                position = i;
+                for (let j = i; j >= 0; j--) {
+                    availableChars -= lines[j].length;
+                    if (lines[j] === "<SYSTEM>") {
+                        skipTo = j - 1;
+                        break;
+                    };
+                };
+                continue;
+            };
+            // Never put the floating prompt inside a Toolbox instruction set
+            if (lines[i] === "[Execute ai_instruction_override]") {
+                // We'll start just after the block if it's too big
+                position = i;
+                for (let j = i; j >= 0; j--) {
+                    availableChars -= lines[j].length;
+                    if (lines[j].startsWith("{\"ai_instruction_override\":")) {
+                        skipTo = j - 1;
+                        break;
+                    };
+                };
+                continue;
+            };
+            position = i;
+            availableChars -= lines[i].length;
+        };
+        if (availableChars > 0) position = 0;
+    };
     // Insert the floating prompt
     // This modifies the original array
-    lines.splice(distance, 0, floatingPrompt);
+    lines.splice(position, 0, floatingPrompt);
     const finalText = lines.join("\n");
     state.finalContextLength = finalText.length;
     return finalText;
@@ -1419,6 +1466,30 @@ function normalizeObject(obj, template) {
         if (
             typeof template[k] === "object"
         ) normalizeObject(obj[k],template[k]);
+    });
+}
+
+function removeUnusedProperties(obj, template) {
+    // Guard clauses
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return;
+    if (!template || typeof template !== 'object') return;
+    
+    Object.keys(obj).forEach(k => {
+        // Check if key exists in template
+        if (!(k in template)) {
+            delete obj[k];
+            return; // Skip recursion since we deleted this property
+        }
+        
+        const objValue = obj[k];
+        const templateValue = template[k];
+        
+        // Only recurse if both values are objects (and not null/arrays)
+        if (objValue && typeof objValue === 'object' && 
+            templateValue && typeof templateValue === 'object' &&
+            !Array.isArray(objValue) && !Array.isArray(templateValue)) {
+            removeUnusedProperties(objValue, templateValue);
+        }
     });
 }
 
@@ -1661,23 +1732,23 @@ function updateStats(){
             const tokensAdded =  Math.floor(
                 (state.finalContextLength 
                 - state.filteredContextLength)/4
-            )
+            );
             const tokensRemoved = Math.floor(
                 (state.rawContextLength 
                 - state.filteredContextLength)/4
-            )
+            );
             // Make the settings into an object for easier data manpulation
-            const card = stringToObject(c.entry, true)
+            const card = stringToObject(c.entry, true);
             // Set statistics
-            card.info.tokens_added_to_context = tokensAdded
-            state.settings.general_settings.tokens_added_to_context = tokensAdded
-            card.info.tokens_removed_from_context = tokensRemoved
-            state.settings.general_settings.tokens_removed_from_context = tokensRemoved
-            card.info.net_effect_on_context_size = tokensAdded - tokensRemoved
-            state.settings.general_settings.net_effect_on_context_size = tokensAdded - tokensRemoved
-            c.entry = stringifyNestedObject(card, true, true)
-        }
-    }
+            card.info.tokens_added_to_context = tokensAdded;
+            state.settings.general_settings.tokens_added_to_context = tokensAdded;
+            card.info.tokens_removed_from_context = tokensRemoved;
+            state.settings.general_settings.tokens_removed_from_context = tokensRemoved;
+            card.info.net_effect_on_context_size = tokensAdded - tokensRemoved;
+            state.settings.general_settings.net_effect_on_context_size = tokensAdded - tokensRemoved;
+            c.entry = stringifyNestedObject(card, true, true);
+        };
+    };
 }
 
 // Adds a symbol to each line of text, optionally adding the symbol to both ends.
