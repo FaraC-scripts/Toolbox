@@ -113,98 +113,111 @@ const DEFAULT_SETTINGS = {
     }
 };
 
+if (!state.update3) {
 // contains all of the Tool objects in an iterable format
-state.TOOLS ??= [
-    new Tool(
-        "cyoa",
-        ["cyoa", "choose", "y"],
-        null,
-        "> Select the next story event by inputting \"/a\", \"/b\", \"/c\", or \"/d\"",
-        '•',
-        0,
-        ["Focus"],
-        ["the protagonist"]
-    ),
-    new Tool(
-        "cyoaChoice",
-        ["a", "b", "c", "d"],
-        null,
-        null,
-        '•',
-        0,
-        [],
-        []
-    ),
-    new Tool(
-        "snapshot", 
-        ["snapshot", "snap", "shot", "view", "s"],
-        [
-            "internal",
-            "extremely close",
-            "nearby",
-            "mid-range",
-            "bird's eye"
-        ],
-        "> Snapshot",
-        '📷',
-        0,
-        ["Distance", "Focus"],
-        [3, "the protagonist"]
-    ),
-    new Tool(
-        "mindview",
-        ["mind", "view", "mindview", "m"],
-        [
-            "inner mologue",
-            "emotional landscape",
-            "somatic record",
-            "visual record",
-            "auditory record",
-            "olfactory record (smell)",
-            "tactile record",
-            "olfactory record (taste)"
-        ],
-        "> Mindview",
-        '💭',
-        0,
-        ["Sense", "Subject"],
-        ["thought", "the protagonist"]
-    ),
-    new Tool(
-        "fastForward",
-        ["fastforward", "fast", "forward", "f", "ff"],
-        null,
-        "> Fast Forward",
-        '⏩',
-        -25,
-        ["Destination"],
-        ["the next scene"]
-    ),
-    new Tool(
-        "protagonist",
-        ["protagonist", "protag", "swap", "protagonistswap", "p"],
-        null,
-        "> Protagonist Swap",
-        null,
-        0,
-        ["New Protagonist"],
-        []
-    ),
-    new Tool(
-        "help",
-        ["help", "h"],
-        null,
-        "> Help - Toolbox Help - ⛔ Erase After Reading ⛔",
-        null,
-        0,
-        [],
-        []
-    ),
-];
+    state.TOOLS = [
+        new Tool(
+            "cyoa",
+            ["cyoa", "choose", "y"],
+            null,
+            "> Select the next story event by inputting \"/a\", \"/b\", \"/c\", or \"/d\"",
+            '•',
+            0,
+            ["Focus"],
+            ["the protagonist"]
+        ),
+        new Tool(
+            "cyoaChoice",
+            ["a", "b", "c", "d"],
+            null,
+            null,
+            '•',
+            0,
+            [],
+            []
+        ),
+        new Tool(
+            "snapshot", 
+            ["snapshot", "snap", "shot", "view", "s"],
+            [
+                "internal",
+                "extremely close",
+                "nearby",
+                "mid-range",
+                "bird's eye"
+            ],
+            "> Snapshot",
+            '📷',
+            0,
+            ["Distance", "Focus"],
+            [3, "the protagonist"]
+        ),
+        new Tool(
+            "mindview",
+            ["mind", "view", "mindview", "m"],
+            [
+                "inner mologue",
+                "emotional landscape",
+                "somatic record",
+                "visual record",
+                "auditory record",
+                "olfactory record (smell)",
+                "tactile record",
+                "olfactory record (taste)"
+            ],
+            "> Mindview",
+            '💭',
+            0,
+            ["Sense", "Subject"],
+            ["thought", "the protagonist"]
+        ),
+        new Tool(
+            "fastForward",
+            ["fastforward", "fast", "forward", "f", "ff"],
+            null,
+            "> Fast Forward",
+            '⏩',
+            -25,
+            ["Destination"],
+            ["the next scene"]
+        ),
+        new Tool(
+            "protagonist",
+            ["protagonist", "protag", "swap", "protagonistswap", "p"],
+            null,
+            "> Protagonist Swap",
+            null,
+            0,
+            ["New Protagonist"],
+            []
+        ),
+        new Tool(
+            "trim",
+            ["trim"],
+            null,
+            "> Trim",
+            '✂️',
+            0,
+            ["Action"],
+            ["None"]
+        ),
+        new Tool(
+            "help",
+            ["help", "h"],
+            null,
+            "> Help - Toolbox Help - ⛔ Erase After Reading ⛔",
+            null,
+            0,
+            [],
+            []
+        ),
+    ];
+    state.update3 = true;
+}
 
 // Manages control flow in the input phase.
 function handleToolboxInput() {
-    try{
+    // try{
         // We need to know if an input happened this turn
         state.inputOccurred = true;
         // Whether control passes to InnerSelf after Toolbox completes.
@@ -259,7 +272,7 @@ function handleToolboxInput() {
             // Pushes an error if the input has command formatting,
             // but does not match any Toolbox commands.
             state.errorLog.push({
-                name: "Command Input Error",
+                name: "⛔ Command Input Error",
                 message: `unrecognized command entered: /${command}` 
             });
             globalThis.text = `> ⛔ Error: /${command} is not a recognized command.\n"`;
@@ -269,22 +282,22 @@ function handleToolboxInput() {
         if (state.errorLog.length > 0){
             return;
         };
-    } catch(e) {
-        // Fallback error if there's an input error that isn't caught elsewhere.
-        state.errorLog.push({
-            name: "Input Error",
-            message: "Something went wrong in the Input phase, and it didn't fall under a more specific error. Oops!"
-        });
-        globalThis.text = "> ⛔ Error: Unspecified Input Error";
-        return;
-    }
+    // } catch(e) {
+    //     // Fallback error if there's an input error that isn't caught elsewhere.
+    //     state.errorLog.push({
+    //         name: "⛔ Input Error",
+    //         message: "Something went wrong in the Input phase, and it didn't fall under a more specific error. Oops!"
+    //     });
+    //     globalThis.text = "> ⛔ Error: Unspecified Input Error";
+    //     return;
+    // }
     // Conditionally passes control to Inner Self
     if (state.runInnerSelf) InnerSelf("input");
 }
 
 // Manages control flow in the context phase.
 function handleToolboxContext() {
-    try{
+    // try{
         // AI Dungeon is odd and doesn't create the stop parameter on its own,
         // and will also throw an error if one is not created.
         globalThis.stop ??= false;
@@ -330,15 +343,15 @@ function handleToolboxContext() {
             globalThis.text = ABORT_OUTPUT;
             return;
         };
-    } catch (e) {
-        // Fallback error if there's a context error that isn't caught elsewhere.
-        state.errorLog.push({
-            name: "Context Error",
-            message:  "Something went wrong in the Context phase, and it didn't fall under a more specific error. Oops!"
-        })
-        globalThis.text = ABORT_OUTPUT;
-        return;
-    };
+    // } catch (e) {
+    //     // Fallback error if there's a context error that isn't caught elsewhere.
+    //     state.errorLog.push({
+    //         name: "⛔ Context Error",
+    //         message:  "Something went wrong in the Context phase, and it didn't fall under a more specific error. Oops!"
+    //     })
+    //     globalThis.text = ABORT_OUTPUT;
+    //     return;
+    // };
     // Conditionally passes control to Inner Self
     if (state.runInnerSelf) InnerSelf("context");
 }
@@ -350,7 +363,7 @@ function handleToolboxOutput() {
         globalThis.text = handleErrors();
         return;
     };
-    try{
+    // try{
         // Handles raw text; mostly useful if the player has raw output enabled,
         // which is preferred. These functions are more generous than the
         // default ones AI Dungeon uses, leading to more usable output text.
@@ -387,8 +400,8 @@ function handleToolboxOutput() {
 // You may encounter inconsistencies: the AI may ignore you or behave erratically.
 // What to do to free up context:
 // - Turn off Inner Self, if it is on. It can sometimes use a lot of context.
-// - Go to Story Cards and reduce the size of longer entries in Prompt cards.
-// - Delete less important Prompt story cards.
+// - Use /trim to automatically reduce the size of Prompt story cards.
+// - Manually reduce the size of Prompt story cards.
 // This warning will only appear at most once every 5 turns. It can be turned off in the Configure Toolbox story card.
 
 `;
@@ -407,13 +420,13 @@ function handleToolboxOutput() {
 
 `
         }
-    } catch(e) {
-        // Fallback error if there's an output error that isn't caught elsewhere.
-        state.errorLog.push({
-            name: "Output Error",
-            message: "Something went wrong in the Output phase of script processing, and it wasn't caught by a more specific error handler. Oops!"
-        });
-    };
+    // } catch(e) {
+    //     // Fallback error if there's an output error that isn't caught elsewhere.
+    //     state.errorLog.push({
+    //         name: "⛔ Output Error",
+    //         message: "Something went wrong in the Output phase of script processing, and it wasn't caught by a more specific error handler. Oops!"
+    //     });
+    // };
     // Final error check
     if (state.errorLog.length > 0) {
         globalThis.text = handleErrors();
@@ -432,6 +445,7 @@ function inputSwitch(tool, command, args) {
         mindview: handleMindviewInput,
         fastForward: handleVignetteInput,
         protagonist: handleProtagonistInput,
+        trim: handleTrimInput,
         help: handleHelpInput
     };
     return funcMap[tool.name](tool, command, args);
@@ -446,7 +460,8 @@ function contextSwitch(tool, lastLine) {
         mindview: handleMindviewContext,
         fastForward: handleVignetteContext,
         protagonist: handleProtagonistContext,
-        help: handleHelpContext
+        trim: handleTrimContext,
+        help: handleAbortedContext
     };
     return funcMap[tool.name](tool, lastLine);
 }
@@ -460,6 +475,7 @@ function outputSwitch(tool) {
         mindview: handleVignetteOutput,
         fastForward: handleVignetteOutput,
         protagonist: handleProtagonistOutput,
+        trim: handleTrimOutput,
         help: handleHelpOutput
     };
     return funcMap[tool.name](tool);
@@ -474,6 +490,7 @@ function promptSwitch(tool) {
         mindview: mindviewPrompt,
         fastForward: fastForwardPrompt,
         protagonist: protagonistPrompt,
+        trim: null,
         help: null
     };
     return funcMap[tool.name](tool);
@@ -502,7 +519,7 @@ function handleCyoaChoiceInput(tool, command, args) {
     // then something has gone wrong. Likely the command was used at the wrong time.
     if (!lastChoiceLine) {
         state.errorLog.push({
-            name: "Command Input Error",
+            name: "⛔ Command Input Error",
             message: "CYOA option choice command (\"/a\", \"/b\", \"/c\", \"/d\") entered without CYOA options present. Make sure you've used /cyoa first, and that the bulleted choices are the most recent output when you use an option choice command."
         });
         return `> ⛔ Error: /${command} must be used immediately after /cyoa to select an option.\n`;
@@ -614,10 +631,23 @@ function handleProtagonistInput(tool, command, args) {
     } else {
         // If there's no argument, throw an error
         state.errorLog.push({
-            name: "Missing Argument Error",
+            name: "⛔ Missing Argument Error",
             message: "\"/protagonist\" requires an argument: the name of the character who will be made the story's perspective character / protagonist."
         });;
         return "> ⛔ Error: \"/protagonist\" requires an argument\n";
+    };
+    return composeInput(tool, args);
+}
+
+// Creates an input when the player enters /trim
+function handleTrimInput(tool, command, args) {
+    // Trim only has two modes, trim, the default, and restore
+    if (args[0]?.toLowerCase() === "restore") {
+        args = ["Restore"];
+    } else if (args[0]?.toLowerCase() === "confirm") {
+        args = ["Trim Prompt Story Cards"];
+    } else {
+        args = tool.defaultArgs;
     };
     return composeInput(tool, args);
 }
@@ -679,20 +709,26 @@ function handleProtagonistContext(tool, lastLine) {
     return prompt
 }
 
-// Creates the context sent to the AI when the player inputs /help
-function handleHelpContext(tool, lastLine) {
-    // AI generation not required for help command
+function handleTrimContext(tool, lastLine) {
+    parseFields(tool, lastLine);
+    return ABORT_OUTPUT
+}
+
+// Creates the context sent to the AI when the player inputs a command that does not need AI generation
+function handleAbortedContext(tool, lastLine) {
+    // AI generation not required for this command
     return ABORT_OUTPUT
 }
 
 // Creates the output returned to the player when they input /cyoa
 function handleCyoaOutput(tool) {
     // Splits the raw output by lines
-    return addSymbolToLines(tool.sym, globalThis.text
+    return addSymbolToLines(globalThis.text
         .split('\n')
         .map(l => l.trim())
         // Removes empty lines
-        .filter(l => l)
+        .filter(l => l),
+        tool.sym
     // Rejoins lines as the final output
     ).join('\n')
 }
@@ -706,9 +742,9 @@ function handleVignetteOutput(tool) {
         // If so, add the tool's symbols to each line of the tool's output
         // to mark those lines for filtering by linesFromText()
         return addSymbolToLines(
-                tool.sym,
                 // Remove leading and trailing linebreaks before splitting
                 globalThis.text.replace(/^[\r\n]+|[\r\n]+$/g,'').split('\n'),
+                tool.sym,
                 true
             ).join('\n') 
             + "\n\n";
@@ -735,6 +771,23 @@ function handleProtagonistOutput(tool) {
     // the stored prompt also gets shown to the player. Just add it behind
     // the raw output.
     return tool.storedValues.prompt + globalThis.text;
+}
+
+// Creates the output returned to the player when they input /trim.
+function handleTrimOutput(tool) {
+    if (tool.storedValues.action === "Trim Prompt Story Cards") {
+        return addSymbolToLines(trimPrompt(), tool.sym).join("\n");
+    } else if (tool.storedValues.action === "Restore") {
+        return addSymbolToLines(restoreTrimmedPrompt(), tool.sym).join("\n")
+    } else {
+        return addSymbolToLines(
+            [
+                'Use "/trim confirm" to reduce prompt size. It will remove the "AI Instructions" prompt card, if present, remove less important fields across multiple cards, and shorten all entries over 140 characters',
+                'Use "/trim restore" to restore prompt story cards to the state they were in prior to the MOST RECENT trimming' 
+            ],
+            tool.sym
+        ).join("\n")
+    };
 }
 
 // Creates the output returned to the player when they input /help
@@ -1082,7 +1135,7 @@ makeInnerSElfNotes(supportingCharacters),
         // If an error is caught here, there may not be an error log yet
         state.errorLog = [
             {
-                name: "Initial Prompt / Startup Error",
+                name: "⛔ Initial Prompt / Startup Error",
                 message: "Something went wrong processing the initial prompt entered by the player.\n// Make sure what you entered was properly copied from the Generate option's final output.\n// It should start and end with curly brakcets {})"
             }
         ];
@@ -1619,7 +1672,6 @@ function linesFromText(text, isCard) {
         );
     // Process the input text:
     let lines = text
-        .replace("Recent Story:", "")         // Remove story header marker
         .replace(/\*+/g, "")                  // Remove all asterisks
         .split("\n")                          // Split into array of lines
         .map(
@@ -1693,7 +1745,7 @@ function stringToObject(input, isCard) {
         }
     } catch {
         state.errorLog.push({
-            name: "String Parsing Error",
+            name: "⛔ String Parsing Error",
             message: "Something went wrong converting plain text to the format used by the code. If you've changed around a prompt or configuration card, make sure it conforms to the following pattern:\n//Section\n//> Field Name: value\n//> Field Name: value"
         });
     }
@@ -1747,8 +1799,10 @@ function updateStats(){
 }
 
 // Adds a symbol to each line of text, optionally adding the symbol to both ends.
-function addSymbolToLines(sym, lines, addEndSym) {
+function addSymbolToLines(lines, sym, addEndSym) {
     // Process each line and return a new array.
+    if (typeof lines === "string") lines = lines.split("\n");
+
     return lines
         .map(line => {
             // Preserve empty lines.
@@ -1776,6 +1830,159 @@ function findLastLineStartingWith(searchString) {
     }
 }
 
+function trimPrompt() {
+    state.storedPromptCards ??= [];
+    state.storedPromptEntries ??= {};
+    const sectionsToRemove = [
+        "AI Instructions"
+    ];
+    const sectionIndexes = [];
+    const fieldsToRemove = {
+        "overview": ["sexual_content", "kink_content", "genre"],
+        "character_template": ["voice_pattern"],
+        "world_info": ["time_period"],
+        "timeline": [],
+        "style_guide": ["tone", "themes"]
+    };
+    const removedCards = [];
+    const removedFields = {};
+    let trimCount = 0;
+
+    for (const [i, c] of storyCards.entries()) {
+        if (sectionsToRemove.includes(c.title)) {
+            sectionIndexes.push(i);
+            state.storedPromptCards.push(c);
+            removedCards.push(c.title);
+            trimCount += c.entry.length;
+        };
+    }
+
+    for (let i = sectionIndexes.length - 1; i >= 0; i--) {
+        removeStoryCard(sectionIndexes[i]);
+    };
+
+    for (const c of storyCards) {
+        if (c.type !== "Prompt") continue;
+        const title = titleToSnake(c.title);
+        state.storedPromptEntries[title] = c.entry;
+        const card = unwrapObject(stringToObject(c.entry, true));
+        let section;
+        if (title in fieldsToRemove){
+            section = fieldsToRemove[title];
+        } else {
+            section = fieldsToRemove["character_template"];
+        };
+        for (const field of section) {
+            removedFields[title] ??= [];
+            removedFields[title].push(field);
+            trimCount += card[field]?.length || 0;
+            delete card[field];
+        };
+        for(const k of Object.keys(card)) {
+            trimCount += card[k].length;
+            card[k] = trimEntry(card[k], 140);
+            trimCount -= card[k].length;
+        };
+        c.entry = stringifyNestedObject({[title]: card}, true);
+    }
+    const returnLines = [];
+    if(removedCards.length > 0){
+        returnLines.push(`Prompt Cards Removed: ${removedCards.join(", ")}`)
+    }
+    const removedSections = Object.keys(removedFields);
+    if(removedSections.length > 0) {
+        returnLines.push("Fields Removed From Prompt Cards:");
+        removedSections.forEach(s => {
+                returnLines.push(`> ${snakeToTitle(s)} - ${removedFields[s].map(f => snakeToTitle(f)).join(", ")}`);
+            }
+        );
+    }
+    returnLines.push("Entries Over 140 Characters Shortened")
+    returnLines.push(`Total Tokens Trimmed: ${Math.floor(trimCount/4)} tokens`);
+    returnLines.push(`To undo this action and restore prompt cards to their previous state, use "/trim restore"`)
+    return returnLines;
+}
+
+function trimEntry(entry, target) {
+    if (!entry || entry.length < target) return entry;
+    // Helper function to find nearest marker
+    const findNearestMarker = (markers) => {
+        let nearest = { index: -1, distance: Infinity, marker: '' };
+        
+        for (const marker of markers) {
+            let pos = -1;
+            while ((pos = entry.indexOf(marker, pos + 1)) !== -1) {
+                const distance = Math.abs(target - pos);
+                if (distance < nearest.distance) {
+                    nearest = { index: pos, distance, marker };
+                }
+            }
+        }
+        return nearest;
+    };
+    
+    // Determine which markers to use
+    if (entry.includes('.')) {
+        const periodMarkers = ['.', ".'", '."', '.”', '.’'];
+        const result = findNearestMarker(periodMarkers);
+        if (result.index !== -1) {
+            return entry.substring(0, result.index + result.marker.length);
+        }
+    }
+    
+    if (entry.includes(',')) {
+        const commaMarkers = [',', ",'", ',"', ',”', ',’'];
+        const result = findNearestMarker(commaMarkers);
+        if (result.index !== -1) {
+            if (result.marker.length > 1) {
+                return entry.substring(0, result.index) + result.marker[1];
+            }
+            return entry.substring(0, result.index);
+        }
+    }
+    
+    if (entry.includes(' ')) {
+        const spaceMarkers = [' '];
+        const result = findNearestMarker(spaceMarkers);
+        if (result.index !== -1) {
+            return entry.substring(0, result.index);
+        }
+    }
+    
+    return entry;
+}
+
+function restoreTrimmedPrompt() {
+    if (
+        state.storedPromptCards.length === 0 
+        && Object.keys(state.storedPromptEntries).length === 0
+    ) return "No prompt cards have been restored. Either they have already been restored, were never trimmed, or something has gone wrong. Hopefully not that last bit.";
+
+    for (const c of state.storedPromptCards) {
+        newStoryCard(
+            c.title,
+            c.type,
+            c.entry,
+            c.description,
+            c.keys
+        );
+    };
+
+    state.storedPromptCards = [];
+
+    for (const c of storyCards) {
+        if (c.type === "Prompt") {
+            const title = titleToSnake(c.title);
+            if (title in state.storedPromptEntries) {
+                c.entry = state.storedPromptEntries[title];
+            };
+        };
+    };
+
+    state.storedPromptEntries ??= {};
+
+    return "Prompt story cards have been restored to the state they were in prior to last using the /trim command."
+}
 
 // Trim a given string to the last "complete" ending point, ensuring it ends with
 // a proper sentence terminator or line break, while also balancing quotes.
@@ -2037,6 +2244,7 @@ https://github.com/FaraC-scripts/Toolbox
 > To select a distance, the first argument must be a number 0-4. These get converted into text as below.
 > By default, the entire Snapshot output is hidden from the AI to avoid overly influencing the story. This can be changed in the Toolbox Configuration story card, but the change is not retroactive.
 - /snapshot [distance] [focus] or /s [distance] [focus]
+- Distance must be a number 0-4. Focus can be anything the snapshot could describe: "Emily", "Emily's face", "the coffee table", "the sunset".
 - Examples: "/snapshot", "/snapshot 2", "/snapshot Emily", "/snapshot 2 Emily"
 - Default distance: 3 (mid-range) - default focus: the protagonist
 - Distance number to distance text conversion:
@@ -2047,16 +2255,18 @@ https://github.com/FaraC-scripts/Toolbox
 > Other aspects of mental activity are also available.
 > By default, the entire Mindview output is hidden from the AI to avoid overly influencing the story. This can be changed in the Toolbox Configuration story card, but the change is not retroactive.
 - /mindview [sense] [subject] or /m [sense] [subject]
+- Sense must be a word from the list below. Subject should be the person whose internal world is being explored.
 - Examples: "/mindview", "/mindview hearing", "/mindview Emily", "/mindview hearing Emily"
 - Default sense: thought - default subject: the protagonist
 - Available senses:
 ["thought", "emotion", "feeling", "sight", "hearing", "smell", "touch", "taste"]
 
 ⏩ Fast Forward
-> Moves the story forward to the provided destination (which can be a location or an event).
+> Moves the story forward to the provided destination.
 > Creates a summary of what happens between now and then.
 > All aspects of Fast Forward are visible to the AI except the input line.
 - /fast [destination] or /forward [destination] or /f [destination]
+- Destination should be an event or location.
 - Examples: "/fast", "/fast Emily arrives at the party"
 - Default destination: the next scene
 
@@ -2068,8 +2278,8 @@ https://github.com/FaraC-scripts/Toolbox
 > Changes the names listed in the Overview prompt story card (if present).
 > Changes the name used for default arguments and floating prompts.
 - /protagonist [new protagonist] or /swap [new protagonist] or /p [new protagonist] 
+- WARNING: the new protagonist argument is required, and needs to be a character name. There is no default. You will get an error if you use this command without an argument.
 - Examples: "/protagonist Emily"
-- WARNING: the new protagonist argument is required. There is no default. You will get an error if you use this command without an argument.
 
 ☁️ Passive Features
 > Prompt Assembly and Insertion
@@ -3558,7 +3768,7 @@ function InnerSelf(hook) {
          * @returns {string} Formatted brain context block
          */
         const bindSelf = (joined = "") => ((mind.length = 0) || (joined === "")) ? "\n\n" : (
-            `\n\n# ${ownership(agent.name)} brain and inner self: <BRAIN>\n${joined}\n</BRAIN>\n\n`
+            `\n\n# ${ownership(agent.name)} brain and inner self: <BRAIN>[\n${joined}\n]</BRAIN>\n\n`
         );
         // Check if the current turn is a retry or erase + continue following a previous task completion
         if (IS.hash === historyHash()) {
