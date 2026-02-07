@@ -217,12 +217,13 @@ if (!state.update3) {
 
 // Manages control flow in the input phase.
 function handleToolboxInput() {
-    // try{
+    try{
         // We need to know if an input happened this turn
         state.inputOccurred = true;
         // Whether control passes to InnerSelf after Toolbox completes.
         // This happens even if InnerSelf is inactive. Defaults to true.
         state.runInnerSelf = true;
+        history = filterHistory();
         /** 
          * AI dungeon's error handling is inconsistent and disruptive.
          * So instead of trowing Errors, custom handling is implemented,
@@ -282,25 +283,26 @@ function handleToolboxInput() {
         if (state.errorLog.length > 0){
             return;
         };
-    // } catch(e) {
-    //     // Fallback error if there's an input error that isn't caught elsewhere.
-    //     state.errorLog.push({
-    //         name: "⛔ Input Error",
-    //         message: "Something went wrong in the Input phase, and it didn't fall under a more specific error. Oops!"
-    //     });
-    //     globalThis.text = "> ⛔ Error: Unspecified Input Error";
-    //     return;
-    // }
+    } catch(e) {
+        // Fallback error if there's an input error that isn't caught elsewhere.
+        state.errorLog.push({
+            name: "⛔ Input Error",
+            message: "Something went wrong in the Input phase, and it didn't fall under a more specific error. Oops!"
+        });
+        globalThis.text = "> ⛔ Error: Unspecified Input Error";
+        return;
+    }
     // Conditionally passes control to Inner Self
     if (state.runInnerSelf) InnerSelf("input");
 }
 
 // Manages control flow in the context phase.
 function handleToolboxContext() {
-    // try{
+    try{
         // AI Dungeon is odd and doesn't create the stop parameter on its own,
         // and will also throw an error if one is not created.
         globalThis.stop ??= false;
+        history = filterHistory();
         // If an error occurred in the input phase, stop here and abort the output.
         if (state.errorLog?.length > 0) {
             globalThis.text = ABORT_OUTPUT;
@@ -343,15 +345,15 @@ function handleToolboxContext() {
             globalThis.text = ABORT_OUTPUT;
             return;
         };
-    // } catch (e) {
-    //     // Fallback error if there's a context error that isn't caught elsewhere.
-    //     state.errorLog.push({
-    //         name: "⛔ Context Error",
-    //         message:  "Something went wrong in the Context phase, and it didn't fall under a more specific error. Oops!"
-    //     })
-    //     globalThis.text = ABORT_OUTPUT;
-    //     return;
-    // };
+    } catch (e) {
+        // Fallback error if there's a context error that isn't caught elsewhere.
+        state.errorLog.push({
+            name: "⛔ Context Error",
+            message:  "Something went wrong in the Context phase, and it didn't fall under a more specific error. Oops!"
+        })
+        globalThis.text = ABORT_OUTPUT;
+        return;
+    };
     // Conditionally passes control to Inner Self
     if (state.runInnerSelf) InnerSelf("context");
 }
@@ -363,7 +365,7 @@ function handleToolboxOutput() {
         globalThis.text = handleErrors();
         return;
     };
-    // try{
+    try{
         // Handles raw text; mostly useful if the player has raw output enabled,
         // which is preferred. These functions are more generous than the
         // default ones AI Dungeon uses, leading to more usable output text.
@@ -420,20 +422,27 @@ function handleToolboxOutput() {
 
 `
         }
-    // } catch(e) {
-    //     // Fallback error if there's an output error that isn't caught elsewhere.
-    //     state.errorLog.push({
-    //         name: "⛔ Output Error",
-    //         message: "Something went wrong in the Output phase of script processing, and it wasn't caught by a more specific error handler. Oops!"
-    //     });
-    // };
-    // Final error check
+    } catch(e) {
+        // Fallback error if there's an output error that isn't caught elsewhere.
+        state.errorLog.push({
+            name: "⛔ Output Error",
+            message: "Something went wrong in the Output phase of script processing, and it wasn't caught by a more specific error handler. Oops!"
+        });
+    };
+    //Final error check
     if (state.errorLog.length > 0) {
         globalThis.text = handleErrors();
         return;
     };
     // Conditionally passes control to Inner Self
     if (state.runInnerSelf) InnerSelf("output");
+}
+
+function filterHistory(){
+    return history.map((h)=> {
+        h.text = linesFromText(h.text).join("\n");
+        return h;
+    })
 }
 
 // Calls the input phase function appropriate to the active tool
@@ -1270,7 +1279,8 @@ function commandParser() {
 // Inputs always need to start on a new line for Toolbox to function.
 // Checks the last character of context and returns a newline if there isn't one.
 function newlineIfRequired(){
-    return history[history.length - 1].text[text.length - 1] !== "\n"
+    const latest = history[history.length - 1].rawText
+    return latest[latest.length - 1] !== "\n"
         ? "\n"
         : "";
 }
@@ -1822,7 +1832,7 @@ function findLastLineStartingWith(searchString) {
     // Abort if there's no search string
     if (!searchString) return null;
     // Get the last history entry and split it into lines
-    const lines = history[history.length-1].text.split('\n')
+    const lines = history[history.length-1].rawText.split('\n')
     // Iterate through those lines backwards starting at the end
     for (let i = lines.length - 1; i >= 0; i--) {
         // If a line starting with the search string is found, return the line
@@ -2041,8 +2051,8 @@ function ensureProperSpacing(str) {
     // If the new text already starts with a newline, it won't need a space
     if (firstChar === '\n') return str
     // Get the last character of the most recent text entry
-    const lastChar = history[history.length-1]
-        .text[history[history.length-1].text.length - 1];
+    const latest = history[history.length -1].rawText
+    const lastChar = latest[latest.length - 1];
     // Check if the last character of previous text is a listed punctuation
     if ( PUNCTUATION.includes(lastChar)) {
             return " " + str
@@ -3429,7 +3439,7 @@ function InnerSelf(hook) {
      * Ignores actions that are just zero-width chars >:3
      * @returns {Object|undefined} The previous action or undefined
      */
-    const getPrevAction = () => history.findLast(a => !/^[\u200B-\u200D]*$/.test(a?.text ?? a?.rawText ?? ""));
+    const getPrevAction = () => history.findLast(a => !/^[\u200B-\u200D]*$/.test(a?.text ?? ""));
     // ==================== CONTEXT HOOK ====================
     // This is where (half) of the magic happens: Inner Self injects brains and tasks into context
     // Infer the current lifecycle hook
@@ -3542,7 +3552,7 @@ function InnerSelf(hook) {
             ((0 < remaining) && (-1 < i) && (possibilities.length === 0));
             i--
         ) {
-            const actionText = history[i]?.text ?? history[i]?.rawText;
+            const actionText = history[i]?.text;
             if ((typeof actionText !== "string") || (actionText.indexOf(">>>") !== -1)) {
                 // Skip invalid actions or Auto-Cards thingies
                 continue;
@@ -4516,7 +4526,7 @@ Follow the format **perfectly**.
             return;
         }
         // Get the previous action text
-        const prevText = (action?.text ?? action?.rawText ?? "").replace(/\n +/g, "\n");
+        const prevText = (action?.text ?? "").replace(/\n +/g, "\n");
         // Add appropriate leading newlines based on how the previous action text ended
         text = !prevText.endsWith("\n") ? `\n\n${text}` : !prevText.endsWith("\n\n") ? `\n${text}` : text;
         return;
@@ -10532,7 +10542,7 @@ function AutoCards(inHook, inText, inStop) {
             }
         })();
         return O.f({
-            text: action?.text ?? (action?.rawText ?? ""),
+            text: action?.text ?? "",
             type: action?.type ?? "unknown"
         });
     }
