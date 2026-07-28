@@ -1,7 +1,7 @@
 toolbox("input");
 
 const modifier = (text) => {
-  return { text }
-}
+  return { text };
+};
 
-modifier(text)
+modifier(text);
