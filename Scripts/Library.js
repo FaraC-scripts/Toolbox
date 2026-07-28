@@ -1,30 +1,39 @@
+//For more information on Toolbox, visit: https://github.com/FaraC-scripts/Toolbox/
 function toolbox(phase){
+  //When using Toolbox in your scenario, the only values you should change are the DEFAULT_SETTINGS.
   const DEFAULT_SETTINGS = {
     "Hidden": {
-      "Dynamic Opening": true
+      //Whether the scenario's normal opening will be replaced by one dynamically created from available prompt cards.
+      "Dynamic Opening": false 
     },
     "Tools": {
+      //The number of tokens the AI is asked to output when using tools. Decrease for shorter outputs. Increase for longer.
+      //Longer outputs risk getting cut off or being incomplete. Generally this should match the player's output size.
       "Tool Output Size": 200,
-      "Motive Size": 25,
-      "Motive Cap": 5
+      "Motive Size": 25, //The number of tokens used by the Motive tool's outputs.
+      "Motive Cap": 5 //The number of motives each character is allowed before old ones get removed.
     },
     "Context": {
-      "Default Instructions": true,
-      "Prompt Cards": true,
-      "Instructions Below Prompt": false,
-      "Prompt Depth": 16,
-      "Basic Personification": true,
-      "Advanced Personification": true,
-      "Echo Ban": true,
-      "Imperative": false,
-      "Boundary Markers": true
+      "Prompt Depth": 16, //How many paragraphs (lines with text on them) prompts and instructions are placed behind.
+      "Instructions Above Prompt Cards": true, //Whether instructions are placed above prompt cards or below them.
+      //The remainder of these options determine whether or not certain elements of context are added by Toolbox
+      "Default Instructions": true, //Toolbox's built-in AI-instructions
+      "Prompt Cards": true, //All cards with Prompt at the start of their Type line
+      "Basic Personification": true, //Basic instructions to treat characters deeply and as realistic people.
+      "Advanced Personification": true, //Additional instructions added to the end of each character's story card or prompt card.
+      "Echo Ban": true, //Strong instructions to not repeat earlier parts of the story.
+      "Imperative": false, //Extremely strong instructions to not repeat and keep progressing the story. Only use when needed.
+      "Boundary Markers": true //Small text markers that help the AI separate background information, instructions, and story.
     },
     "Output": {
-      "Output Processing": true,
-      "Paragraph Break Length": 3,
-      "Context Size Warnings": true,
-      "Context Warning Margin": 500,
-      "Context Warning Frequency": 5
+      "Output Processing": true, //Whether output text is normalized to always include proper spacing and line-endings.
+      //If Output Processing is true and Paragraph Break Length is greater than 0
+      //the last paragraph of the output will automatically have a line break added to the end
+      //if it is more than that many sentences long
+      "Paragraph Break Length": 3, 
+      "Context Size Warnings": true, //Whether the player will recieve context use warnings
+      "Context Warning Margin": 500, //How close to their cap the player needs to be before recieving a warning
+      "Context Warning Frequency": 5 //How frequently warnings can occur
     }
   }
 
