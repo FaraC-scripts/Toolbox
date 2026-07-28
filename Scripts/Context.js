@@ -2,7 +2,7 @@ toolbox("context");
 
 const modifier = (text) => {
   stop = false;
-  return { text, stop }
-}
+  return { text, stop };
+};
 
 modifier(text);
