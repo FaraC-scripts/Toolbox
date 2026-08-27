@@ -43,7 +43,7 @@ Get a detailed picture of what the scene looks like
 Slash Commands: /snapshot or /s
 Request Examples:
 
-## 💭 __Mindview__ 💭
+### 💭 __Mindview__ 💭
 
 Get a detailed view of what a character is thinking
 
