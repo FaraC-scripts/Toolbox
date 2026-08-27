@@ -36,7 +36,29 @@ Requests are sent to the AI alongside instructions for the tool itself, and give
 When you use a tool, _most_ tools will create a specialized input that is used by the script to execute the tool.
 >🔱 Tool: CYOA - Request: The protagonist's next action
 
-Your request __can be edited here__, but the rest of the input should not be modified. 
+Your request __can be edited here__, but the rest of the input should not be modified.
+
+Many tools create an output that is __not visible to the AI__. You can always tell by the following line at the bottom of a tool output:
+
+> Will the AI see this output? (Y/N): N
+
+If you want that output to be __part of the context__ and visible to the AI, change the N to a Y.
+
+This will __treat the output as an aside__, modifying it so that the AI sees something like this:
+
+> ---
+> 
+> [A brief aside:]
+>
+> A snapshot of the scene as a whole:
+>
+> _output text_
+>
+> ---
+> 
+> [Resume the story. Address _the protagonist_ in second-person. Continue writing in present tense.]
+
+The above example uses the __Snapshot__ tool as an example. The line "A snapshot of the scene as a whole" will differ from tool to tool. The _output text_ is whatever the bulk of what the AI outputs; in this case it would be a description of what the scene looks like. If you have a story card or prompt card with _Character (Protagonist)_ in the title, their name will be used instead of the more generic _the protagonist_. The perspective and tense requested will check for a __Style__ prompt card, and use the perspective and tense listed there. If there isn't a Style card, it will default to a request to continue with the previous perspective and tense.
 
 For a brief overview of each tool command and what it does, enter "/list" inside of a Toolbox scenario. For a more detailed look at tools, go to the __Tool List__ below.
 
@@ -50,26 +72,29 @@ __Slash Commands:__ /cyoa or /y
 
 __Output Visibility:__ Defaults to __not seen__ by the AI. The selected option, however, is __seen__ by the AI. 
 
-__Default Request:__ The protagonist's next action
+__Default Request:__ the protagonist's next action
 
 __Examples__
 > /cyoa
 > 
-> /y what Heather does next
+> /y search for traps
 >
 > /y a plot twist
 
 ### 📷 __Snapshot__ 📷
 
-Get a detailed picture of what the scene looks like
+Get a detailed picture of what the scene, the environment, a character, or anything else looks like.
 
 __Slash Commands:__ /snapshot or /s
 
 __Output Visibility:__ Defaults to __not seen__ by the AI.
 
-__Default Request:__
+__Default Request:__ the scene as a whole 
 
-__Request Examples:__
+__Examples__
+> /snapshot
+>
+> /s 
 
 ### 💭 __Mindview__ 💭
 
@@ -79,9 +104,9 @@ __Slash Commands:__ /mindview or /m
 
 __Output Visibility:__ Defaults to __not seen__ by the AI.
 
-__Default Request:__
+__Default Request:__  
 
-__Request Examples:__
+__Examples__
 
 ### ⏩ __Fast Forward__ ⏩
 
@@ -93,7 +118,7 @@ __Output Visibility:__ Defaults to __seen__ by the AI.
 
 __Default Request:__
 
-__Request Examples:__
+__Examples__
 
 ### 👤 __Protagonist__ 👤
 
@@ -105,7 +130,7 @@ __Output Visibility:__ Defaults to __seen__ by the AI.
 
 __Default Request:__
 
-__Request Examples:__
+__Examples__
 
 ### 🎬 __Direct__ 🎬
 
@@ -117,7 +142,7 @@ __Output Visibility:__ Does not produce an output; instead, it modifies an input
 
 __Default Request:__
 
-__Request Examples:__
+__Examples__
 
 ### 🎴 __Card__ 🎴
 
@@ -129,7 +154,7 @@ __Output Visibility:__ Defaults to __not seen__ by the AI.
 
 __Default Request:__
 
-__Request Examples:__
+__Examples__
 
 ### 🔄 __Update__ 🔄
 
@@ -141,7 +166,7 @@ __Output Visibility:__ Defaults to __not seen__ by the AI.
 
 __Default Request:__
 
-__Request Examples:__
+__Examples__
 
 ### 🎭 __Motive__ 🎭
 
@@ -153,7 +178,7 @@ __Output Visibility:__ Produces a partial output that is __not seen__ by the AI 
 
 __Default Request:__
 
-__Request Examples:__
+__Examples__
 
 ### 💡 __Reflect__ 💡
 
@@ -165,7 +190,7 @@ __Slash Commands:__ /reflect or /x
 
 __Default Request:__
 
-__Request Examples:__
+__Examples__
 
 ### 💥 __Use__ 💥
 
@@ -177,7 +202,7 @@ __Output Visibility:__ Produces a modified output with some lines that are __not
 
 __Default Request:__
 
-__Request Examples:__
+__Examples__
 
 ### 🗺️ __Map__ 🗺️
 
@@ -189,7 +214,7 @@ __Output Visibility:__ Defaults to __not seen__ by the AI.
 
 __Default Request:__
 
-__Request Examples:__
+__Examples__
 
 ## Context Management
 
