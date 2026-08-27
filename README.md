@@ -74,7 +74,7 @@ __Slash Commands:__ /cyoa or /y
 
 __Output Visibility:__ Defaults to __not seen__ by the AI. The selected option, however, is __seen__ by the AI. 
 
-__Default Request:__ the protagonist's next action
+__Default Request:__ _the protagonist_'s next action
 
 __Examples__
 > /cyoa
@@ -91,24 +91,37 @@ __Slash Commands:__ /snapshot or /s
 
 __Output Visibility:__ Defaults to __not seen__ by the AI.
 
-__Default Request:__ the scene as a whole 
+__Default Request:__ the scene as a whole
 
 __Examples__
 > /snapshot
 >
-> /s 
+> /s Cori
+>
+> /s a close-up of Cori's face
+>
+> /s Cori as she hits a home run
+> 
+> /s a top-down view of the baseball field
 
 ### 💭 __Mindview__ 💭
 
-Get a detailed view of what a character is thinking
+Get a detailed view of what a character is thinking, in the form of a first-person inner monologue. 
 
 __Slash Commands:__ /mindview or /m
 
 __Output Visibility:__ Defaults to __not seen__ by the AI.
 
-__Default Request:__  
+__Default Request:__  _the protagonist_
 
 __Examples__
+>
+>
+>
+>
+>
+>
+>
 
 ### ⏩ __Fast Forward__ ⏩
 
@@ -121,6 +134,12 @@ __Output Visibility:__ Defaults to __seen__ by the AI.
 __Default Request:__
 
 __Examples__
+>
+>
+>
+>
+>
+
 
 ### 👤 __Protagonist__ 👤
 
@@ -133,6 +152,11 @@ __Output Visibility:__ Defaults to __seen__ by the AI.
 __Default Request:__
 
 __Examples__
+>
+>
+>
+>
+>
 
 ### 🎬 __Direct__ 🎬
 
@@ -145,6 +169,11 @@ __Output Visibility:__ Does not produce an output; instead, it modifies an input
 __Default Request:__
 
 __Examples__
+>
+>
+>
+>
+>
 
 ### 🎴 __Card__ 🎴
 
@@ -157,6 +186,11 @@ __Output Visibility:__ Defaults to __not seen__ by the AI.
 __Default Request:__
 
 __Examples__
+>
+>
+>
+>
+>
 
 ### 🔄 __Update__ 🔄
 
@@ -169,6 +203,11 @@ __Output Visibility:__ Defaults to __not seen__ by the AI.
 __Default Request:__
 
 __Examples__
+>
+>
+>
+>
+>
 
 ### 🎭 __Motive__ 🎭
 
@@ -181,6 +220,11 @@ __Output Visibility:__ Produces a partial output that is __not seen__ by the AI 
 __Default Request:__
 
 __Examples__
+>
+>
+>
+>
+>
 
 ### 💡 __Reflect__ 💡
 
@@ -193,6 +237,11 @@ __Slash Commands:__ /reflect or /x
 __Default Request:__
 
 __Examples__
+>
+>
+>
+>
+>
 
 ### 💥 __Use__ 💥
 
@@ -205,6 +254,11 @@ __Output Visibility:__ Produces a modified output with some lines that are __not
 __Default Request:__
 
 __Examples__
+>
+>
+>
+>
+>
 
 ### 🗺️ __Map__ 🗺️
 
@@ -217,6 +271,11 @@ __Output Visibility:__ Defaults to __not seen__ by the AI.
 __Default Request:__
 
 __Examples__
+>
+>
+>
+>
+>
 
 ## Context Management
 
