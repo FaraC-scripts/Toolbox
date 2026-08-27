@@ -27,6 +27,7 @@ __Tools__ are special scripted functions that offer a wide range of utility.
 
 Tools can be activated by entering slash commands into Do or Say while playing a __Toolbox__ scenario.
 > /card
+
 You can also include a __request__ when entering your command.
 > "/card Deepwater Station".
 
