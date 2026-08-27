@@ -4,9 +4,7 @@ __Toolbox__ is a context management system and robust set of scripted tools for 
 
 This document covers both playing with Toolbox and installing it into your own scenarios.
 
-[User Guide](#User-Guide) - [Installation Guide](#Installation-Guide)
-
-# User Guide
+[User Guide](#User-Guide)
 
 __Contents__
 - [Using Tools](#Using-Tools)
@@ -15,8 +13,16 @@ __Contents__
 - [Toolbox Settings](#Toolbox-Settings)
 - [Prompt Sequence](#Prompt-Sequence)
 
-__Advanced Topics__
+### [Installation Guide](#Installation-Guide)
 
+__Contents__
+- [Installing through AI Dungeon]
+- [Manual Installation]
+- [Changing Default Settings]
+- [Universal Generator Prompts]
+- [Acknowledgments]
+
+# User Guide
 
 ## Using Tools
 
@@ -29,7 +35,3 @@ __Advanced Topics__
 ## Prompt Sequence
 
 # Installation Guide
-
-__Contents__
-
-__Advanced Topics__
