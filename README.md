@@ -37,97 +37,97 @@ For a brief overview of each tool command and what it does, enter "/list" inside
 
 Get four story progression options to choose between
 
-Slash Commands: /cyoa or /y
+__Slash Commands:__ /cyoa or /y
 
-Request Examples:
+__Request Examples:__
 
 ### 📷 __Snapshot__ 📷
 
 Get a detailed picture of what the scene looks like
 
-Slash Commands: /snapshot or /s
+__Slash Commands:__ /snapshot or /s
 
-Request Examples:
+__Request Examples:__
 
 ### 💭 __Mindview__ 💭
 
 Get a detailed view of what a character is thinking
 
-Slash Commands: /mindview or /m
+__Slash Commands:__ /mindview or /m
 
-Request Examples:
+__Request Examples:__
 
 ### ⏩ __Fast Forward__ ⏩
 
 Move the story forward quickly
 
-Slash Commands: /fastforward or /f
+__Slash Commands:__ /fastforward or /f
 
-Request Examples:
+__Request Examples:__
 
 ### 👤 __Protagonist__ 👤
 
 Change the character you play as
 
-Slash Commands: /protagonist or /p
+__Slash Commands:__ /protagonist or /p
 
-Request Examples:
+__Request Examples:__
 
 ### 🎬 __Direct__ 🎬
 
 Give instructions on how the scene should progress
 
-Slash Commands: /direct or /t
+__Slash Commands:__ /direct or /t
 
-Request Examples:
+__Request Examples:__
 
 ### 🎴 __Card__ 🎴
 
 Make a story card or prompt card
 
-Slash Commands: /card or /r
+__Slash Commands:__ /card or /r
 
-Request Examples:
+__Request Examples:__
 
 ### 🔄 __Update__ 🔄
 
 Update a story card or prompt card
 
-Slash Commands: /update or /u
+__Slash Commands:__ /update or /u
 
-Request Examples:
+__Request Examples:__
 
 ### 🎭 __Motive__ 🎭
 
 Record a character's motivations
 
-Slash Commands: /motive or /v
+__Slash Commands:__ /motive or /v
 
-Request Examples:
+__Request Examples:__
 
 ### 💡 __Reflect__ 💡
 
 Record a snippet of a character's thoughts
 
-Slash Commands: /reflect or /x
+__Slash Commands:__ /reflect or /x
 
-Request Examples:
+__Request Examples:__
 
 ### 💥 __Use__ 💥
 
 Use an ability, item, or recipe and record the changes
 
-Slash Commands: /use or /e
+__Slash Commands:__ /use or /e
 
-Request Examples:
+__Request Examples:__
 
 ### 🗺️ __Map__ 🗺️
 
 See how story cards and prompt cards connect
 
-Slash Commands: /map or /w
+__Slash Commands:__ /map or /w
 
-Request Examples:
+__Request Examples:__
 
 ## Context Management
 
