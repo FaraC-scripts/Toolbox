@@ -42,7 +42,7 @@ Many tools create an output that is __not visible to the AI__. You can always te
 
 > Will the AI see this output? (Y/N): N
 
-If you want that output to be __part of the context__ and visible to the AI, change the N to a Y.
+If you want that output to be __part of the context__ and visible to the AI, change the __N__ to a __Y__.
 
 This will __treat the output as an aside__, modifying it so that the AI sees something like this:
 
