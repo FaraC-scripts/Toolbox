@@ -33,14 +33,20 @@ For a brief overview of each tool command and what it does, enter "/list" inside
 
 ## Tool List (Detailed)
 
-🔱 __CYOA__ 🔱
+### 🔱 __CYOA__ 🔱
+
 Get four story progression options to choose between
+
 Slash Commands: /cyoa or /y
+
 Request Examples:
 
-📷 __Snapshot__ 📷
+### 📷 __Snapshot__ 📷
+
 Get a detailed picture of what the scene looks like
+
 Slash Commands: /snapshot or /s
+
 Request Examples:
 
 ### 💭 __Mindview__ 💭
@@ -51,49 +57,76 @@ Slash Commands: /mindview or /m
 
 Request Examples:
 
-⏩ __Fast Forward__ ⏩
+### ⏩ __Fast Forward__ ⏩
+
 Move the story forward quickly
+
 Slash Commands: /fastforward or /f
+
 Request Examples:
 
-👤 __Protagonist__ 👤
+### 👤 __Protagonist__ 👤
+
 Change the character you play as
+
 Slash Commands: /protagonist or /p
+
 Request Examples:
 
-🎬 __Direct__ 🎬
+### 🎬 __Direct__ 🎬
+
 Give instructions on how the scene should progress
+
 Slash Commands: /direct or /t
+
 Request Examples:
 
-🎴 __Card__ 🎴
+### 🎴 __Card__ 🎴
+
 Make a story card or prompt card
+
 Slash Commands: /card or /r
+
 Request Examples:
 
-🔄 __Update__ 🔄
+### 🔄 __Update__ 🔄
+
 Update a story card or prompt card
+
 Slash Commands: /update or /u
+
 Request Examples:
 
-🎭 __Motive__ 🎭
+### 🎭 __Motive__ 🎭
+
 Record a character's motivations
+
 Slash Commands: /motive or /v
+
 Request Examples:
 
-💡 __Reflect__ 💡
+### 💡 __Reflect__ 💡
+
 Record a snippet of a character's thoughts
+
 Slash Commands: /reflect or /x
+
 Request Examples:
 
-💥 __Use__ 💥
+### 💥 __Use__ 💥
+
 Use an ability, item, or recipe and record the changes
+
 Slash Commands: /use or /e
+
 Request Examples:
 
-🗺️ __Map__ 🗺️
+### 🗺️ __Map__ 🗺️
+
 See how story cards and prompt cards connect
+
 Slash Commands: /map or /w
+
 Request Examples:
 
 ## Context Management
