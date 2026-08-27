@@ -25,9 +25,16 @@ __Installation Guide__
 
 __Tools__ are special scripted functions that offer a wide range of utility.
 
-Tools can be activated by entering slash commands into Do or Say while playing a __Toolbox__ scenario, e.g., "/card". You can also include a __request__ when entering your command, e.g., "/card Deepwater Station".
+Tools can be activated by entering slash commands into Do or Say while playing a __Toolbox__ scenario.
+> /card
+You can also include a __request__ when entering your command.
+> "/card Deepwater Station".
 
 Requests are sent to the AI alongside instructions for the tool itself, and given high priority. Typically, requests should be the character, subject, or topic you want the tool to focus on. However, they are very flexible and can be used in creative ways, depending on the specifics of the tool. In __Tool List__ below, additional uses for requests are noted on a per-tool basis.
+
+When you use a tool, _most_ tools will create a specialized input that is used by the script to execute the tool, e.g.,
+>🔱 Tool: CYOA - Request: The protagonist's next action.
+Your request __can be edited here__, but the rest of the input should not be modified. 
 
 For a brief overview of each tool command and what it does, enter "/list" inside of a Toolbox scenario. For a more detailed look at tools, go to the __Tool List__ below.
 
