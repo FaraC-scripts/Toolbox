@@ -29,12 +29,13 @@ Tools can be activated by entering slash commands into Do or Say while playing a
 > /card
 
 You can also include a __request__ when entering your command.
-> "/card Deepwater Station".
+> /card Deepwater Station
 
 Requests are sent to the AI alongside instructions for the tool itself, and given high priority. Typically, requests should be the character, subject, or topic you want the tool to focus on. However, they are very flexible and can be used in creative ways, depending on the specifics of the tool. In __Tool List__ below, additional uses for requests are noted on a per-tool basis.
 
-When you use a tool, _most_ tools will create a specialized input that is used by the script to execute the tool, e.g.,
->🔱 Tool: CYOA - Request: The protagonist's next action.
+When you use a tool, _most_ tools will create a specialized input that is used by the script to execute the tool.
+>🔱 Tool: CYOA - Request: The protagonist's next action
+
 Your request __can be edited here__, but the rest of the input should not be modified. 
 
 For a brief overview of each tool command and what it does, enter "/list" inside of a Toolbox scenario. For a more detailed look at tools, go to the __Tool List__ below.
@@ -43,17 +44,30 @@ For a brief overview of each tool command and what it does, enter "/list" inside
 
 ### 🔱 __CYOA__ 🔱
 
-Get four story progression options to choose between
+Get four story progression options to choose between. Once you get those options, you will then have to enter _/a_, _/b_, _/c_, or _d_ into Do or Say to select an option.
 
 __Slash Commands:__ /cyoa or /y
 
-__Request Examples:__
+__Output Visibility:__ Defaults to __not seen__ by the AI. The selected option, however, is __seen__ by the AI. 
+
+__Default Request:__ The protagonist's next action
+
+__Examples__
+> /cyoa
+> 
+> /y what Heather does next
+>
+> /y a plot twist
 
 ### 📷 __Snapshot__ 📷
 
 Get a detailed picture of what the scene looks like
 
 __Slash Commands:__ /snapshot or /s
+
+__Output Visibility:__ Defaults to __not seen__ by the AI.
+
+__Default Request:__
 
 __Request Examples:__
 
@@ -63,6 +77,10 @@ Get a detailed view of what a character is thinking
 
 __Slash Commands:__ /mindview or /m
 
+__Output Visibility:__ Defaults to __not seen__ by the AI.
+
+__Default Request:__
+
 __Request Examples:__
 
 ### ⏩ __Fast Forward__ ⏩
@@ -70,6 +88,10 @@ __Request Examples:__
 Move the story forward quickly
 
 __Slash Commands:__ /fastforward or /f
+
+__Output Visibility:__ Defaults to __seen__ by the AI.
+
+__Default Request:__
 
 __Request Examples:__
 
@@ -79,6 +101,10 @@ Change the character you play as
 
 __Slash Commands:__ /protagonist or /p
 
+__Output Visibility:__ Defaults to __seen__ by the AI.
+
+__Default Request:__
+
 __Request Examples:__
 
 ### 🎬 __Direct__ 🎬
@@ -86,6 +112,10 @@ __Request Examples:__
 Give instructions on how the scene should progress
 
 __Slash Commands:__ /direct or /t
+
+__Output Visibility:__ Does not produce an output; instead, it modifies an input or adds to an existing output and is always __seen__ by the AI until it has reached its __fade distance__.
+
+__Default Request:__
 
 __Request Examples:__
 
@@ -95,6 +125,10 @@ Make a story card or prompt card
 
 __Slash Commands:__ /card or /r
 
+__Output Visibility:__ Defaults to __not seen__ by the AI.
+
+__Default Request:__
+
 __Request Examples:__
 
 ### 🔄 __Update__ 🔄
@@ -102,6 +136,10 @@ __Request Examples:__
 Update a story card or prompt card
 
 __Slash Commands:__ /update or /u
+
+__Output Visibility:__ Defaults to __not seen__ by the AI.
+
+__Default Request:__
 
 __Request Examples:__
 
@@ -111,13 +149,21 @@ Record a character's motivations
 
 __Slash Commands:__ /motive or /v
 
+__Output Visibility:__ Produces a partial output that is __not seen__ by the AI in the normal flow of context, but which gets included in a character's Prompt Card or Story Card (and is __seen__ there).
+
+__Default Request:__
+
 __Request Examples:__
 
 ### 💡 __Reflect__ 💡
 
 Record a snippet of a character's thoughts
 
+__Output Visibility:__ Produces a partial output that is __not seen__ by the AI in the normal flow of context, but which gets included in a character's Prompt Card or Story Card (and is __seen__ there).
+
 __Slash Commands:__ /reflect or /x
+
+__Default Request:__
 
 __Request Examples:__
 
@@ -127,6 +173,10 @@ Use an ability, item, or recipe and record the changes
 
 __Slash Commands:__ /use or /e
 
+__Output Visibility:__ Produces a modified output with some lines that are __not seen__ by the AI.
+
+__Default Request:__
+
 __Request Examples:__
 
 ### 🗺️ __Map__ 🗺️
@@ -134,6 +184,10 @@ __Request Examples:__
 See how story cards and prompt cards connect
 
 __Slash Commands:__ /map or /w
+
+__Output Visibility:__ Defaults to __not seen__ by the AI.
+
+__Default Request:__
 
 __Request Examples:__
 
