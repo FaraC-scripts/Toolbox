@@ -12,7 +12,8 @@ __Contents__
 - [Using Tools](#Using-Tools)
 - [Tool List (Detailed)](#Tool-List-(Detailed))
 - [Context Management](#Context-Management)
-- [Toolbox Settings](#Toolbox-Settings)
+- [⚙️ Toolbox Settings](#⚙️-Toolbox-Settings)
+- [📋️ Prompt Sequence](#📋️-Prompt-Sequence)
 
 __Advanced Topics__
 
@@ -22,6 +23,10 @@ __Advanced Topics__
 ## Tool List (Detailed)
 
 ## Context Management
+
+## ⚙️ Toolbox Settings
+
+## 📋️ Prompt Sequence
 
 # Installation Guide
 
