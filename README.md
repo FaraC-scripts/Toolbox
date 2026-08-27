@@ -46,7 +46,7 @@ If you want that output to be __part of the context__ and visible to the AI, cha
 
 This will __treat the output as an aside__, modifying it so that the AI sees something like this:
 
-> ---
+> \---
 > 
 > [A brief aside:]
 >
@@ -54,7 +54,7 @@ This will __treat the output as an aside__, modifying it so that the AI sees som
 >
 > _output text_
 >
-> ---
+> \---
 > 
 > [Resume the story. Address _the protagonist_ in second-person. Continue writing in present tense.]
 
