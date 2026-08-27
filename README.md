@@ -34,7 +34,7 @@ You can also include a __request__ when entering your command.
 Requests are sent to the AI alongside instructions for the tool itself, and given high priority. Typically, requests should be the character, subject, or topic you want the tool to focus on. However, they are very flexible and can be used in creative ways, depending on the specifics of the tool. In __Tool List__ below, additional uses for requests are noted on a per-tool basis.
 
 When you use a tool, _most_ tools will create a specialized input that is used by the script to execute the tool.
->🔱 Tool: CYOA - Request: The protagonist's next action
+>📷 Tool: Snapshot - Request: the scene as a whole
 
 Your request __can be edited here__, but the rest of the input should not be modified.
 
@@ -58,7 +58,9 @@ This will __treat the output as an aside__, modifying it so that the AI sees som
 > 
 > [Resume the story. Address _the protagonist_ in second-person. Continue writing in present tense.]
 
-The above example uses the __Snapshot__ tool as an example. The line "A snapshot of the scene as a whole" will differ from tool to tool. The _output text_ is whatever the bulk of what the AI outputs; in this case it would be a description of what the scene looks like. If you have a story card or prompt card with _Character (Protagonist)_ in the title, their name will be used instead of the more generic _the protagonist_. The perspective and tense requested will check for a __Style__ prompt card, and use the perspective and tense listed there. If there isn't a Style card, it will default to a request to continue with the previous perspective and tense.
+"A snapshot of the scene as a whole" will differ from tool to tool. The _output text_ is whatever the bulk of what the AI outputs.
+
+If you have a story card or prompt card with _Character (Protagonist)_ in the title, their name will be used instead of the more generic _the protagonist_. The perspective and tense requested will pull from your __Style__ prompt card or default to generics.
 
 For a brief overview of each tool command and what it does, enter "/list" inside of a Toolbox scenario. For a more detailed look at tools, go to the __Tool List__ below.
 
