@@ -24,9 +24,9 @@ __Advanced Topics__
 
 ## Context Management
 
-## ⚙️ Toolbox Settings
+## Toolbox Settings
 
-## 📋️ Prompt Sequence
+## Prompt Sequence
 
 # Installation Guide
 
