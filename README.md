@@ -1,4 +1,4 @@
-# Toolbox Guide
+# 🧰 Toolbox 🧰
 
 __Toolbox__ is a context management system and robust set of scripted tools for AI Dungeon scenarios. 
 
