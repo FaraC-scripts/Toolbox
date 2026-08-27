@@ -12,11 +12,11 @@ __[User Guide](#User-Guide)__
 - [Prompt Sequence](#Prompt-Sequence)
 
 __[Installation Guide](#Installation-Guide)__
-- [Installing through AI Dungeon]
-- [Manual Installation]
-- [Changing Default Settings]
-- [Universal Generator Prompts]
-- [Acknowledgments]
+- [Installing through AI Dungeon](#Installing-through-AI-Dungeon)
+- [Manual Installation](#Manual-Installation)
+- [Changing Default Settings](#Changing-Default-Settings)
+- [Universal Generator Prompts](#Universal-Generator-Prompts)
+- [Acknowledgments](#Acknowledgments)
 
 # User Guide
 
@@ -31,3 +31,13 @@ __[Installation Guide](#Installation-Guide)__
 ## Prompt Sequence
 
 # Installation Guide
+
+## Installing through AI Dungeon
+
+## Manual Installation
+
+## Changing Default Settings
+
+## Universal Generator Prompts
+
+## Acknowledgments
