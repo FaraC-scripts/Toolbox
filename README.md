@@ -6,7 +6,7 @@ This document covers both playing with Toolbox and installing it into your own s
 
 __User Guide__
 - [Tools](#Using-Tools)
-- [Tool List (Detailed)](#Tool-List-(Detailed))
+- [Tool List (Detailed)](#Tool-List)
 - [Context Management](#Context-Management)
 - [Toolbox Settings](#Toolbox-Settings)
 - [Prompt Sequence](#Prompt-Sequence)
@@ -38,13 +38,13 @@ When you use a tool, _most_ tools will create a specialized input that is used b
 
 Your request __can be edited here__, but the rest of the input should not be modified.
 
-Many tools create an output that is __not visible to the AI__. You can always tell by the following line at the bottom of a tool output:
+Many tools create an output that is __not visible to the AI by default__. You can always tell by the following line at the top of a tool output:
 
-> Will the AI see this output? (Y/N): N
+> 👁️‍🗨️ Visible to AI? (Y/N): N
 
 If you want that output to be __part of the context__ and visible to the AI, change the __N__ to a __Y__.
 
-This will __treat the output as an aside__, modifying it so that the AI sees something like this:
+__Visible tool outputs will be treated as an aside__, modifying it so that the AI sees something like this:
 
 > \---
 > 
@@ -62,9 +62,11 @@ This will __treat the output as an aside__, modifying it so that the AI sees som
 
 If you have a story card or prompt card with _Character (Protagonist)_ in the title, their name will be used instead of the more generic _the protagonist_. The perspective and tense requested will pull from your __Style__ prompt card or default to generics.
 
+The final line, the directive to continue the story, will only be added to context for 1-2 outputs after the tool output. 
+
 For a brief overview of each tool command and what it does, enter "/list" inside of a Toolbox scenario. For a more detailed look at tools, go to the __Tool List__ below.
 
-## Tool List (Detailed)
+## Tool List
 
 ### 🔱 __CYOA__ 🔱
 
