@@ -10,6 +10,7 @@ __User Guide__
 - [Context Management](#Context-Management)
 - [Toolbox Settings](#Toolbox-Settings)
 - [Prompt Sequence](#Prompt-Sequence)
+- [Tool Scheduling and Automation](#Tool-Scheduling-and-Automation)
 
 __Installation Guide__
 - [Installing through AI Dungeon](#Installing-through-AI-Dungeon)
@@ -91,12 +92,12 @@ Get a detailed picture of what the scene, the environment, a character, or anyth
 
 __Slash Commands:__ /snapshot or /s
 
-__Output Visibility:__ Defaults to __not seen__ by the AI.
+__Output Visibility:__ Defaults to __not seen__ by the AI. The default visibility of this tool can be changed in __Tool Settings__.
 
 __Default Request:__ the scene as a whole
 
 __Examples__
-> /snapshot
+> /s
 >
 > /s Cori
 >
@@ -112,35 +113,35 @@ Get a detailed view of what a character is thinking, in the form of a first-pers
 
 __Slash Commands:__ /mindview or /m
 
-__Output Visibility:__ Defaults to __not seen__ by the AI.
+__Output Visibility:__ Defaults to __not seen__ by the AI. The default visibility of this tool can be changed in __Tool Settings__.
 
 __Default Request:__  _the protagonist_
 
 __Examples__
+> /m
 >
+> /m Karim
 >
+> /m Karim puzzling out the cryptic message
 >
->
->
->
->
+> /m Karim's shock when he realizes his sister is the Bloody Balloon Killer
 
 ### ⏩ __Fast Forward__ ⏩
 
-Move the story forward quickly
+Move the story forward quickly, then resume after a summary of intervening events.
 
 __Slash Commands:__ /fastforward or /f
 
 __Output Visibility:__ Defaults to __seen__ by the AI.
 
-__Default Request:__
+__Default Request:__ the next scene
 
 __Examples__
+> /f
 >
->
->
->
->
+> /f the wedding
+> 
+> /f Tav arriving late to the royal wedding
 
 
 ### 👤 __Protagonist__ 👤
@@ -284,6 +285,8 @@ __Examples__
 ## Toolbox Settings
 
 ## Prompt Sequence
+
+## Tool Scheduling and Automation
 
 # Installation Guide
 
