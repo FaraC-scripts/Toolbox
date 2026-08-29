@@ -4,10 +4,19 @@ __Toolbox__ is a context management system and robust set of scripted tools for 
 
 This document covers both playing with Toolbox and installing it into your own scenarios.
 
+If you'd like to create a custom adventure and play it with Toolbox, check out the __Universal Generator__ scenario:
+
+${Universal Generator}
+
+If you'd like try out Toolbox in an exampled scenario, check out the __After the End__ scenario:
+
+${After the End}
+
 __User Guide__
 - [Tools](#Using-Tools)
 - [Tool List (Detailed)](#Tool-List)
 - [Context Management](#Context-Management)
+- [Critical Components](#Critical-Components)
 - [Toolbox Settings](#Toolbox-Settings)
 - [Prompt Sequence](#Prompt-Sequence)
 - [Tool Scheduling and Automation](#Tool-Scheduling-and-Automation)
@@ -17,7 +26,7 @@ __Installation Guide__
 - [Manual Installation](#Manual-Installation)
 - [Changing Default Settings](#Changing-Default-Settings)
 - [Universal Generator Prompts](#Universal-Generator-Prompts)
-- [Acknowledgments](#Acknowledgments)
+- [Use-and-Acknowledgments](#Use-and-Acknowledgments)
 
 # User Guide
 
@@ -75,12 +84,12 @@ Get four story progression options to choose between. Once you get those options
 
 __Slash Commands:__ /cyoa or /y
 
-__Output Visibility:__ Defaults to __not seen__ by the AI. The selected option, however, is __seen__ by the AI. 
+__Output Visibility:__ The set of options default to __not seen__ by the AI. The selected option is __always seen__ by the AI. 
 
 __Default Request:__ _the protagonist_'s next action
 
 __Examples__
-> /cyoa
+> /y
 > 
 > /y search for traps
 >
@@ -101,7 +110,7 @@ __Examples__
 >
 > /s Cori
 >
-> /s a close-up of Cori's face
+> /s a close-up of your face
 >
 > /s Cori as she hits a home run
 > 
@@ -124,7 +133,7 @@ __Examples__
 >
 > /m Karim puzzling out the cryptic message
 >
-> /m Karim's shock when he realizes his sister is the Bloody Balloon Killer
+> /m your shock when you realize your sister is the Bloody Balloon Killer
 
 ### ⏩ __Fast Forward__ ⏩
 
@@ -138,45 +147,55 @@ __Default Request:__ the next scene
 
 __Examples__
 > /f
->
+> 
 > /f the wedding
+>
+> /f three weeks later
+>
+> /f when you wake up the next morning
 > 
 > /f Tav arriving late to the royal wedding
 
 
 ### 👤 __Protagonist__ 👤
 
-Change the character you play as
+Change the character you play as. This command will also alter the titles of __prompt cards__ and __story cards__. If a card currently has the _(Protagonist)_ role, that text will be changed to _(Supporting Character)_. If the new protagonist has a card with their name and " - Character" in the title, that card will be given the _(Protagonist)_ role. This role is used to help keep the AI on track in a few different ways. See [Critical Components](#Critical-Components)
 
 __Slash Commands:__ /protagonist or /p
 
 __Output Visibility:__ Defaults to __seen__ by the AI.
 
-__Default Request:__
+__Default Request:__ a random named character other than _the protagonist_
 
 __Examples__
+> /p
+> 
+> /p James
 >
->
->
->
->
+> /p James Kerrington
 
 ### 🎬 __Direct__ 🎬
 
-Give instructions on how the scene should progress
+Give instructions to the AI on how the scene should progress. This command creates a specialized input as such:
+
+> \[Scene instructions: _request_.]
+
+These special _scene instructions_ are subject to a configurable __fade distance__ set in __Tool Settings__. Scene instructions further back in context than the fade distance (in terms of output count) are hidden from the AI.
 
 __Slash Commands:__ /direct or /t
 
-__Output Visibility:__ Does not produce an output; instead, it modifies an input or adds to an existing output and is always __seen__ by the AI until it has reached its __fade distance__.
+__Output Visibility:__ Does not produce an output; instead, it modifies an input or adds to an existing output and is always __seen__ by the AI until past its __fade distance__.
 
-__Default Request:__
+__Default Request:__ slow the pace of narration and pay attention to detail
 
 __Examples__
+> /t
+> 
+> /t focus on writing dialogue
 >
->
->
->
->
+> /t you eat the Multi-Berry NutriCube
+> 
+> /t Lucia tries to pilot the Mule into position, but a thruster misfires
 
 ### 🎴 __Card__ 🎴
 
@@ -282,6 +301,8 @@ __Examples__
 
 ## Context Management
 
+## Critical Components
+
 ## Toolbox Settings
 
 ## Prompt Sequence
@@ -298,4 +319,4 @@ __Examples__
 
 ## Universal Generator Prompts
 
-## Acknowledgments
+## Use and Acknowledgments
