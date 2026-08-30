@@ -82,7 +82,7 @@ For a brief overview of each tool command and what it does, enter "/list" inside
 
 Get four story progression options to choose between. Once you get those options, you will then have to enter _/a_, _/b_, _/c_, or _d_ into Do or Say to select an option.
 
-__Slash Commands:__ /cyoa or /y
+__Slash Commands:__ /cyoa or /a
 
 __Output Visibility:__ The set of options default to __not seen__ by the AI. The selected option is __always seen__ by the AI. 
 
@@ -182,7 +182,7 @@ Give instructions to the AI on how the scene should progress. This command creat
 
 These special _scene instructions_ are subject to a configurable __fade distance__ set in __Tool Settings__. Scene instructions further back in context than the fade distance (in terms of output count) are hidden from the AI.
 
-__Slash Commands:__ /direct or /t
+__Slash Commands:__ /direct or /d
 
 __Output Visibility:__ Does not produce an output; instead, it modifies an input or adds to an existing output and is always __seen__ by the AI until past its __fade distance__.
 
@@ -209,7 +209,7 @@ In the card tool's output, just below the visibility line, there will be this:
 
 The "P" can be changed to "S" to create a traditional story card. Its triggers will be auto-generated, and you should probably review them in the story card itself to make sure they are suitable. 
 
-__Slash Commands:__ /card or /r
+__Slash Commands:__ /card or /c
 
 __Output Visibility:__ Defaults to __not seen__ by the AI. To clarify, this means the on-screen output won't be a part of context. The card it generates, however, __will__ be __seen__ by the AI, in the same way a prompt card or story card would normally be seen.
 
