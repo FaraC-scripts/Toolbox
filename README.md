@@ -193,17 +193,25 @@ __Examples__
 > 
 > /t focus on writing dialogue
 >
-> /t you eat the Multi-Berry NutriCube
+> /t you eat the Multi-Berry NutriCube. It's terrible.
 > 
 > /t Lucia tries to pilot the Mule into position, but a thruster misfires
 
 ### 🎴 __Card__ 🎴
 
-Make a story card or prompt card
+Make a story card or prompt card based on a requested topic.
+
+By default, a __prompt card__ is created. Prompt cards don't use triggers, and by default always appear in context behind a certain number of paragraphs. They are configurable in __Context Settings__ and __Prompt Sequence__.
+
+In the card tool's output, just below the visibility line, there will be this:
+
+> 🎴 Story Card or Prompt Card? (S/P): P
+
+The "P" can be changed to "S" to create a traditional story card. Its triggers will be auto-generated, and you should probably review them in the story card itself to make sure they are suitable. 
 
 __Slash Commands:__ /card or /r
 
-__Output Visibility:__ Defaults to __not seen__ by the AI.
+__Output Visibility:__ Defaults to __not seen__ by the AI. To clarify, this means the on-screen output won't be a part of context. The card it generates, however, __will__ be __seen__ by the AI, in the same way a prompt card or story card would normally be seen.
 
 __Default Request:__
 
