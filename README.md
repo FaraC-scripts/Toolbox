@@ -207,20 +207,32 @@ In the card tool's output, just below the visibility line, there will be this:
 
 > 🎴 Story Card or Prompt Card? (S/P): P
 
-The "P" can be changed to "S" to create a traditional story card. Its triggers will be auto-generated, and you should probably review them in the story card itself to make sure they are suitable. 
+The "P" can be changed to "S" to create a traditional story card. Its triggers will be auto-generated, and are not always going to trigger when and where you might like. You should probably review them in the story card itself to make sure they are suitable.
+
+Whether __Card__ defaults to prompt cards or story cards can be changed in __Tool Settings__.
+
+When you use __Card__, a prompt card or story card will be created from the text generated in the output. That text should have a __Title__ and __Type__ line for proper card creation.
+
+If you __undo__ after using __Card__, the generated card will remain in your Story Cards.
+
+If you __retry__ after using __Card__, the generated card will be deleted and a new card will be added to your Story Cards based on the text in retry output.
+
+If you __edit__ the text below and leave it in place (don't undo or retry), that card will be updated to match on your next action (Do, Say, Continue, any tool command, etc.).
 
 __Slash Commands:__ /card or /c
 
 __Output Visibility:__ Defaults to __not seen__ by the AI. To clarify, this means the on-screen output won't be a part of context. The card it generates, however, __will__ be __seen__ by the AI, in the same way a prompt card or story card would normally be seen.
 
-__Default Request:__
+__Default Request:__ the person, place, faction, object, or event most relevant to the scene
 
 __Examples__
+> /c
 >
+> /c Aureth Leafshadow
 >
+> /c The Shadewood
 >
->
->
+> /c The Burning of the Shadewood
 
 ### 🔄 __Update__ 🔄
 
