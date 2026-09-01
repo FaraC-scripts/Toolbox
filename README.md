@@ -236,20 +236,40 @@ __Examples__
 
 ### 🔄 __Update__ 🔄
 
-Update a story card or prompt card
+Update a story card or prompt card.
+
+This command is the only one to use a __compound request__. The first part of the request must be the __card name__. The name can be just part of the card's title, and the script will find the nearest-matching card, but for best results use the entire card name. Then, you may optionally include a semicolon followed by _instructions_ on how to update the card.
+
+> /u __The Ossuary Cabal__; _include the losses from their last battle_
+
+If _instructions_ are not included, the update will default to updating the card with information from recent context.
+
+If no request is included, a random card will be selected to update.
+
+When you receive an Update output, the matched card will already have been updated with the output text. Only fields present in the output text are modified. Other fields are left intact.
+
+If you __Undo__, the updates will be saved.
+
+If you __Retry__, new updates will be generated and applied.
+
+If you want to __edit__ the update, change the output text and take a forward action (__Do__, __Say__, __Continue__, __Story__, __Guide__, or a tool command). The card will be updated with the edited text.
+
+If you want to __restore__ the original card, change U to R on the __Update or Restore?__ line in the output and take a forward action.
 
 __Slash Commands:__ /update or /u
 
 __Output Visibility:__ Defaults to __not seen__ by the AI.
 
-__Default Request:__
+__Default Request:__ random
 
 __Examples__
+> /u
 >
+> /u The Ossuary Cabal
 >
+> /u Cabal
 >
->
->
+> /u Cabal; include the losses from their last battle
 
 ### 🎭 __Motive__ 🎭
 
