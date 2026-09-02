@@ -218,7 +218,7 @@ If you __undo__ after using __Card__, the generated card will remain in your Sto
 
 If you __retry__ after using __Card__, the generated card will be deleted and a new card will be added to your Story Cards based on the text in retry output.
 
-If you __edit__ the text below and leave it in place (don't undo or retry), that card will be updated to match on your next action (Do, Say, Continue, any tool command, etc.).
+If you __edit__ the text below and leave it in place (don't undo or retry), that card will be updated to match on your next action (__Do__, __Say__, __Continue__, etc.).
 
 __Slash Commands:__ /card or /c
 
@@ -251,7 +251,7 @@ If you __Undo__, the updates will be saved.
 
 If you __Retry__, new updates will be generated and applied.
 
-If you want to __edit__ the update, change the output text and take a forward action (__Do__, __Say__, __Continue__, __Story__, __Guide__, or a tool command). The card will be updated with the edited text.
+If you want to __edit__ the update, change the output text and take a forward action (__Do__, __Say__, __Continue__, etc.). The card will be updated with the edited text.
 
 If you want to __restore__ the original card, change U to R on the __Update or Restore?__ line in the output and take a forward action.
 
@@ -309,7 +309,7 @@ If you __Undo__, the motive will remain.
 
 If you __Retry__, the motive will be replaced.
 
-If __edit__ the motive text and take a forward action (__Do__, __Say__, __Continue__, __Story__, __Guide__, or a tool command). The motive will be updated. 
+If __edit__ the motive text and take a forward action (__Do__, __Say__, __Continue__, etc.). The motive will be updated. 
 
 ___NOTE:___ Only the text of the motive can be changed, not the name or the character card it is applied to. If you change the name, nothing will happen.
 
@@ -373,7 +373,7 @@ If you __Undo__, the reflection will remain.
 
 If you __Retry__, the reflection will be replaced.
 
-If __edit__ the reflection text and take a forward action (__Do__, __Say__, __Continue__, __Story__, __Guide__, or a tool command). The reflection will be updated. 
+If __edit__ the reflection text and take a forward action (__Do__, __Say__, __Continue__, etc.). The reflection will be updated. 
 
 ___NOTE:___ Only the text of the reflection can be changed, not the name or the character card it is applied to. If you change the name, nothing will happen.
 
@@ -400,20 +400,39 @@ __Examples__
 
 ### 💥 __Use__ 💥
 
-Use an ability, item, or recipe and record the changes
+Use an ability, item, or recipe and record the changes.
+
+This tool will attempt to generate and record __costs__ and __gains__ as the result of the requested action, as well as provide a textual description of the outcome of the action.
+
+__Costs__ and __gains__ will only be included and can only be recorded if the _protagonist_ has _resources_ and/or _inventory_ prompt cards. If your protagonist is named Anise, the script will look for prompt cards or story cards with the following titles (the emojis aren't required):
+> 🪙 Anise's Resources
+> 
+> 💼 Anise's Inventory
+
+If one or both of these cards are found, __costs__ will be deducted from them and __gains__ will be added to them.
+
+If you __Undo__, the cost and gain changes will remain.
+
+If you __Retry__, the cost and gain changes will be updated.
+
+If __edit__ the costs and gains and take a forward action (__Do__, __Say__, __Continue__, etc.), the changes will be updated. 
 
 __Slash Commands:__ /use or /e
 
 __Output Visibility:__ Produces a modified output with some lines that are __not seen__ by the AI.
 
-__Default Request:__
+__Default Request:__ the ability or item best suited to the situation
 
 __Examples__
+> /u
 >
+> /u Magic Missile
 >
+> /u Lesser Healing Potion
 >
+> /u Recipe: Lesser Healing Potion
 >
->
+> /u loot the dead goblins
 
 ### 🗺️ __Map__ 🗺️
 
