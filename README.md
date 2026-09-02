@@ -290,11 +290,11 @@ This motive will get recorded immediately at the bottom Edward's card's entry.
 > 
 > Entry:
 > 
-> Background: a hero of the Queendom of Aval
+> \> Background: a hero of the Queendom of Aval
 > 
 >  ...
 > 
-> Current Motive: I need to save the Queen from the dracolich before it's too late!
+> \> Current Motive: I need to save the Queen from the dracolich before it's too late!
 
 If additional __motives__ are added (up to your __motive cap__) the _Current Motive_ will become a _Prior Motive_.
 
