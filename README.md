@@ -14,7 +14,7 @@ ${After the End}
 
 __User Guide__
 - [Tools](#Using-Tools)
-- [Tool List (Detailed)](#Tool-List)
+- [Detailed Tool List](#Detailed-Tool-List)
 - [Context Management](#Context-Management)
 - [Critical Components](#Critical-Components)
 - [Toolbox Settings](#Toolbox-Settings)
@@ -41,7 +41,7 @@ Tools can be activated by entering slash commands into Do or Say while playing a
 You can also include a __request__ when entering your command.
 > /card Deepwater Station
 
-Requests are sent to the AI alongside instructions for the tool itself, and given high priority. Typically, requests should be the character, subject, or topic you want the tool to focus on. However, they are very flexible and can be used in creative ways, depending on the specifics of the tool. In __Tool List__ below, additional uses for requests are noted on a per-tool basis.
+Requests are sent to the AI alongside instructions for the tool itself, and given high priority. Typically, requests should be the character, subject, or topic you want the tool to focus on. However, they are very flexible and can be used in creative ways, depending on the specifics of the tool. In __Detailed Tool List__ below, additional uses for requests are noted on a per-tool basis.
 
 When you use a tool, _most_ tools will create a specialized input that is used by the script to execute the tool.
 >📷 Tool: Snapshot - Request: the scene as a whole
@@ -74,9 +74,9 @@ If you have a story card or prompt card with _Character (Protagonist)_ in the ti
 
 The final line, the directive to continue the story, will only be added to context for 1-2 outputs after the tool output. 
 
-For a brief overview of each tool command and what it does, enter "/list" inside of a Toolbox scenario. For a more detailed look at tools, go to the __Tool List__ below.
+For a brief overview of each tool command and what it does, enter "/list" inside of a Toolbox scenario. For a more detailed look at tools, go to the __Detailed Tool List__ below.
 
-## Tool List
+## Detailed Tool List
 
 ### 🔱 __CYOA__ 🔱
 
@@ -238,13 +238,11 @@ __Examples__
 
 Update a story card or prompt card.
 
-This command is the only one to use a __compound request__. The first part of the request must be the __card name__. The name can be just part of the card's title, and the script will find the nearest-matching card, but for best results use the entire card name. Then, you may optionally include a semicolon followed by _instructions_ on how to update the card.
+This command uses a __compound request__. The first part of the request must be the __card name__. The name can be just part of the card's title, and the script will find the nearest-matching card, but for best results use the entire card name. Then, you may optionally include a semicolon followed by _instructions_ on how to update the card.
 
 > /u __The Ossuary Cabal__; _include the losses from their last battle_
 
 If _instructions_ are not included, the update will default to updating the card with information from recent context.
-
-If no request is included, a random card will be selected to update.
 
 When you receive an Update output, the matched card will already have been updated with the output text. Only fields present in the output text are modified. Other fields are left intact.
 
@@ -273,7 +271,50 @@ __Examples__
 
 ### 🎭 __Motive__ 🎭
 
-Record a character's motivations
+Record a character's motivations.
+
+This command uses a __compound request__. The first part of the request must be the __character identifier__. The identifier can be the character's name, or it can be descriptive, e.g., _the assassin trying to stab me_. Then, you may optionally include a semicolon followed by _instructions_ on what the motive should be.
+
+> /u __Edward__; _regarding the Queen's peril_
+
+If _instructions_ are not included, the motive will just be whatever the AI thinks most appropriate given the context.
+
+This is a __partial output tool__, meaning it consumes a small portion of your output, configurable in __Tool Settings__, then continues the story as normal. That small part is the __motive__ created at the top of the output.
+
+> 🎭 Edward: I need to save the Queen from the dracolich before it's too late!
+
+This motive will get recorded immediately at the bottom Edward's card's entry.
+
+> ### Story Card
+> Title: 🧍 Edward - Character (Loyal Hero)
+> 
+> Entry:
+> 
+> Background: a hero of the Queendom of Aval
+> 
+>  ...
+> 
+> Current Motive: I need to save the Queen from the dracolich before it's too late!
+
+If additional __motives__ are added (up to your __motive cap__) the _Current Motive_ will become a _Prior Motive_.
+
+> Prior Motive: I need to save the Queen from the dracolich before it's too late!
+> 
+> Current Motive: I need to find the dracolich's phylactery egg to slay it!
+
+If you __Undo__, the motive will remain.
+
+If you __Retry__, the motive will be replaced.
+
+If __edit__ the motive text and take a forward action (__Do__, __Say__, __Continue__, __Story__, __Guide__, or a tool command). The motive will be updated. 
+
+___NOTE:___ Only the text of the motive can be changed, not the name or the character card it is applied to. If you change the name, nothing will happen.
+
+The behavior of __motives__ over time is governed by several options in your __Tool Settings__. 
+
+Your __Motive Cap__ determines how many motives you can have per character. If you add a new one over the cap, the oldest motive is deleted.
+
+Your __Motive Fade__ determines how many outputs motives persist for, after which they will be automatically removed from their respective cards. This can be set to 0 for motives that do not fade.
 
 __Slash Commands:__ /motive or /v
 
