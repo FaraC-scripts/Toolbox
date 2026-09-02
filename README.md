@@ -273,7 +273,7 @@ __Examples__
 
 Record a character's motivations.
 
-This command uses a __compound request__. The first part of the request must be the __character identifier__. The identifier can be the character's name, or it can be descriptive, e.g., _the assassin trying to stab me_. Then, you may optionally include a semicolon followed by _instructions_ on what the motive should be.
+This command uses a __compound request__. The first part of the request must be the __character identifier__. The identifier can be the character's name, or it can be descriptive, e.g., _the hero of the realm_. Then, you may optionally include a semicolon followed by _instructions_ on what the motive should be.
 
 > /u __Edward__; _regarding the Queen's peril_
 
@@ -296,11 +296,13 @@ This motive will get recorded immediately at the bottom Edward's card's entry.
 > 
 > \> Current Motive: I need to save the Queen from the dracolich before it's too late!
 
+If Edward doesn't have a card, a new 🧠 Edward's Mind card will be created to store his motives and reflections.
+
 If additional __motives__ are added (up to your __motive cap__) the _Current Motive_ will become a _Prior Motive_.
 
-> Prior Motive: I need to save the Queen from the dracolich before it's too late!
+> \> Prior Motive: I need to save the Queen from the dracolich before it's too late!
 > 
-> Current Motive: I need to find the dracolich's phylactery egg to slay it!
+> \> Current Motive: I need to find the dracolich's phylactery egg to slay it!
 
 If you __Undo__, the motive will remain.
 
@@ -320,31 +322,80 @@ __Slash Commands:__ /motive or /v
 
 __Output Visibility:__ Produces a partial output that is __not seen__ by the AI in the normal flow of context, but which gets included in a character's Prompt Card or Story Card (and is __seen__ there).
 
-__Default Request:__
+__Default Request:__ the character with the strongest motivations in this scene who doesn't already have an up-to-date motive
 
 __Examples__
+> /v
 >
+> /v Edward
 >
+> /v the hero of the realm
 >
->
->
+> /v Edward; his plans for lunch
 
 ### 💡 __Reflect__ 💡
 
 Record a snippet of a character's thoughts
 
-__Output Visibility:__ Produces a partial output that is __not seen__ by the AI in the normal flow of context, but which gets included in a character's Prompt Card or Story Card (and is __seen__ there).
+This command uses a __compound request__. The first part of the request must be the __character identifier__. The identifier can be the character's name, or it can be descriptive, e.g., _the woman in the red dress_. Then, you may optionally include a semicolon followed by _instructions_ on what the reflection should be.
+
+> /u __Sandra__; _how she feels about you asking her to dance_
+
+If _instructions_ are not included, the reflection will just be whatever the AI thinks most appropriate given the context.
+
+This is a __partial output tool__, meaning it consumes a small portion of your output, configurable in __Tool Settings__, then continues the story as normal. That small part is the __reflection__ created at the top of the output.
+
+> 🎭 Sandra: I don't think I want to dance with this guy. He kinda seems like a creep.
+
+This motive will get recorded immediately at the bottom Sandra's card's entry.
+
+> ### Story Card
+> Title: 🧍 Sandra - Character (Love Interest)
+> 
+> Entry:
+> 
+> \> Background: an accountant working in the suburbs of Toronto.
+> 
+>  ...
+> 
+> \> Current Thoughts: I don't think I want to dance with this guy. He kinda seems like a creep.
+
+If Sandra doesn't have a card, a new 🧠 Sandra's Mind card will be created to store her motives and reflections.
+
+If additional __reflections__ are added (up to your __reflect cap__) _Current Thoughts_ will become _Prior Thoughts_.
+
+> \> Prior Thoughts: I don't think I want to dance with this guy. He kinda seems like a creep.
+> 
+> \> Current Thoughts: Maybe I was too harsh on Edward at first. He's just a little awkward. And he did save the Queen from a dracolich.
+
+If you __Undo__, the reflection will remain.
+
+If you __Retry__, the reflection will be replaced.
+
+If __edit__ the reflection text and take a forward action (__Do__, __Say__, __Continue__, __Story__, __Guide__, or a tool command). The reflection will be updated. 
+
+___NOTE:___ Only the text of the reflection can be changed, not the name or the character card it is applied to. If you change the name, nothing will happen.
+
+The behavior of __reflections__ over time is governed by several options in your __Tool Settings__. 
+
+Your __Reflect Cap__ determines how many reflections you can have per character. If you add a new one over the cap, the oldest reflection is deleted.
+
+Your __Reflect Fade__ determines how many outputs reflections persist for, after which they will be automatically removed from their respective cards. This can be set to 0 for reflections that do not fade.
 
 __Slash Commands:__ /reflect or /x
 
-__Default Request:__
+__Output Visibility:__ Produces a partial output that is __not seen__ by the AI in the normal flow of context, but which gets included in a character's Prompt Card or Story Card (and is __seen__ there).
+
+__Default Request:__ the character with the most to think about right now
 
 __Examples__
+> /x
 >
+> /x Sandra
 >
+> /x the woman in the red dress
 >
->
->
+> /x Sandra; her favorite way to spend a Sunday afternoon
 
 ### 💥 __Use__ 💥
 
