@@ -13,7 +13,7 @@ If you'd like try out Toolbox in an exampled scenario, check out the __After the
 ${After the End}
 
 __User Guide__
-- [Tools](#Using-Tools)
+- [Tools](#Tools)
 - [Detailed Tool List](#Detailed-Tool-List)
 - [Context Management](#Context-Management)
 - [Critical Components](#Critical-Components)
