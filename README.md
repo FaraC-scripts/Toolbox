@@ -13,14 +13,14 @@ If you'd like try out Toolbox in an exampled scenario, check out the __After the
 ${After the End}
 
 __User Guide__
-- [🛠️ Tools](#-Tools-)
+- [🛠️ Tools](##️⃣-Tools-#️⃣)
 - [👁️‍🗨️ Tool Visibility](#%EF%B8%8F-Tool-Visiblity-%EF%B8%8F)
 - [🧩 Compound Requests](##️⃣-Compound-Requests-#️⃣)
-- [🔎 Detailed Tool List](##️⃣-Detailed-Tool-List-)
-- [🗂️ Context Management](##️⃣-Context-Management-)
-- [⚙️ Toolbox Settings](##️⃣-Toolbox-Settings-)
-- [📋️ Prompt Sequence](##️⃣-Prompt-Sequence-)
-- [📅Tool Scheduling and Automation](##️⃣-Tool-Scheduling-and-Automation-)
+- [🔎 Detailed Tool List](##️⃣-Detailed-Tool-List-#️⃣)
+- [🗂️ Context Management](##️⃣-Context-Management-#️⃣)
+- [⚙️ Toolbox Settings](##️⃣-Toolbox-Settings-#️⃣)
+- [📋️ Prompt Sequence](##️⃣-Prompt-Sequence-#️⃣)
+- [📅Tool Scheduling and Automation](##️⃣-Tool-Scheduling-and-Automation-#️⃣)
 
 __Installation Guide__
 - [Installing through AI Dungeon](#Installing-through-AI-Dungeon)
