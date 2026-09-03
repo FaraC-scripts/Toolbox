@@ -94,7 +94,7 @@ In this case, the __identifier__, _James's Background_, determines the card to u
 The __instructions__, _include what he shared..._, determine what sort of updates to make. 
 
 ## Detailed Tool List
-[🔱 CYOA 🔱](#-CYOA-) - [📷 Snapshot 📷](#-Snapshot-) - [💭 Mindview 💭](#-Mindview-) - [⏩ Fast Forward ⏩](#-Fast-Forward-) - [👤 Protagonist 👤](#-Protagonist-) - [🎬 Direct 🎬](#-Direct-) - [🎴 Card 🎴](#-Card-) - [🔄 Update 🔄](#-Update-) - [🎭 Motive 🎭](#-Motive-) - [💡 Reflect 💡](#-Reflect-) - [💥 Use 💥](#-Use-) - [🗺️ Map 🗺️](#-Map-)
+[🔱 CYOA 🔱](#-CYOA-) - [📷 Snapshot 📷](#-Snapshot-) - [💭 Mindview 💭](#-Mindview-) - [🗺️ Map 🗺️](#-Map-) - [⏩ Fast Forward ⏩](#-Fast-Forward-) - [👤 Protagonist 👤](#-Protagonist-) - [🎬 Direct 🎬](#-Direct-) - [🎴 Card 🎴](#-Card-) - [🔄 Update 🔄](#-Update-) - [🎭 Motive 🎭](#-Motive-) - [💡 Reflect 💡](#-Reflect-) - [💥 Use 💥](#-Use-) - [🌐 Relationships 🌐](#-Relationships-) 
 
 ### 🔱 __CYOA__ 🔱
 
@@ -103,6 +103,8 @@ Get four story progression options to choose between. Once you get those options
 __Slash Commands:__ /cyoa or /a
 
 __Output Visibility:__ The set of options default to __not seen__ by the AI. The selected option is __always seen__ by the AI. 
+
+__Request Type:__ the type of options you want
 
 __Default Request:__ _the protagonist_'s next action
 
@@ -120,6 +122,8 @@ Get a detailed picture of what the scene, the environment, a character, or anyth
 __Slash Commands:__ /snapshot or /s
 
 __Output Visibility:__ Defaults to __not seen__ by the AI. The default visibility of this tool can be changed in __Tool Settings__.
+
+__Request Type:__ what you want a picture of
 
 __Default Request:__ the scene as a whole
 
@@ -142,6 +146,8 @@ __Slash Commands:__ /mindview or /m
 
 __Output Visibility:__ Defaults to __not seen__ by the AI. The default visibility of this tool can be changed in __Tool Settings__.
 
+__Request Type:__ the character you want to see inside
+
 __Default Request:__  _the protagonist_
 
 __Examples__
@@ -153,6 +159,27 @@ __Examples__
 >
 > /m your shock when you realize your sister is the Bloody Balloon Killer
 
+### 🗺️ __Map__ 🗺️
+
+Get a description of an area's layout, connections, and points of interest.
+
+__Slash Commands:__ /map or /w
+
+__Output Visibility:__ Defaults to __seen__ by the AI.
+
+__Request Type:__ the location to map
+
+__Default Request:__ _the protagonist's_ current location
+
+__Examples__
+> /w
+>
+> /w Red Willow Tavern
+>
+> /w The Blighted Marches
+>
+> /w The Shattered Realms
+
 ### ⏩ __Fast Forward__ ⏩
 
 Move the story forward quickly, then resume after a summary of intervening events.
@@ -160,6 +187,8 @@ Move the story forward quickly, then resume after a summary of intervening event
 __Slash Commands:__ /fastforward or /f
 
 __Output Visibility:__ Defaults to __seen__ by the AI.
+
+__Request Type:__ the destination
 
 __Default Request:__ the next scene
 
@@ -183,6 +212,8 @@ __Slash Commands:__ /protagonist or /p
 
 __Output Visibility:__ Defaults to __seen__ by the AI.
 
+__Request Type:__ the character to switch to
+
 __Default Request:__ a random named character other than _the protagonist_
 
 __Examples__
@@ -203,6 +234,8 @@ These special _scene instructions_ are subject to a configurable __fade distance
 __Slash Commands:__ /direct or /d
 
 __Output Visibility:__ Does not produce an output; instead, it modifies an input or adds to an existing output and is always __seen__ by the AI until past its __fade distance__.
+
+__Request Type:__ the scene instructions
 
 __Default Request:__ slow the pace of narration and pay attention to detail
 
@@ -241,6 +274,8 @@ __Slash Commands:__ /card or /c
 
 __Output Visibility:__ Defaults to __not seen__ by the AI. To clarify, this means the on-screen output won't be a part of context. The card it generates, however, __will__ be __seen__ by the AI, in the same way a prompt card or story card would normally be seen.
 
+__Request Type:__ the card topic
+
 __Default Request:__ the person, place, faction, object, or event most relevant to the scene
 
 __Examples__
@@ -275,6 +310,8 @@ If you want to __restore__ the original card, change U to R on the __Update or R
 __Slash Commands:__ /update or /u
 
 __Output Visibility:__ Defaults to __not seen__ by the AI.
+
+__Request Type:__ the name of the card to update
 
 __Default Request:__ random
 
@@ -340,6 +377,8 @@ __Slash Commands:__ /motive or /v
 
 __Output Visibility:__ Produces a partial output that is __not seen__ by the AI in the normal flow of context, but which gets included in a character's Prompt Card or Story Card (and is __seen__ there).
 
+__Request Type:__ a character name
+
 __Default Request:__ the character with the strongest motivations in this scene who doesn't already have an up-to-date motive
 
 __Examples__
@@ -404,6 +443,8 @@ __Slash Commands:__ /reflect or /x
 
 __Output Visibility:__ Produces a partial output that is __not seen__ by the AI in the normal flow of context, but which gets included in a character's Prompt Card or Story Card (and is __seen__ there).
 
+__Request Type:__ a character name
+
 __Default Request:__ the character with the most to think about right now
 
 __Examples__
@@ -438,6 +479,8 @@ __Slash Commands:__ /use or /e
 
 __Output Visibility:__ Produces a modified output with some lines that are __not seen__ by the AI.
 
+__Request Type:__ what is being used
+
 __Default Request:__ the ability or item best suited to the situation
 
 __Examples__
@@ -451,22 +494,28 @@ __Examples__
 >
 > /u loot the dead goblins
 
-### 🗺️ __Map__ 🗺️
+### 🌐 Relationships 🌐
 
-See how story cards and prompt cards connect
+See how story cards and prompt cards connect.
 
-__Slash Commands:__ /map or /w
+This tool uses the relationships built by Generate (if that option is kept on) between cards that mention one-another. As a very simple example if you have _Ashen Veil - World_ and _The Verdant Marrow - Region_, and The Verdant Marrow has the field _Within: Ashen Veil_, the _Ashen Veil_ component will get the following field: _Regions: The Verdant Marrow_. Then, when you use __Relationships__, it will output the following:
+
+> 🌎 Ashen Veil (World)
+> 
+> \> Regions: The Verdant Marrow
+
+Some of the components that can have their relationships mapped with _/r_, in the hierarchical order in which they are mapped: _World_, _Region_, _Location_, _Faction_, _Event_, _Species_, _Character_,  _Item_
+
+__Slash Commands:__ /relationships or /r
 
 __Output Visibility:__ Defaults to __not seen__ by the AI.
 
-__Default Request:__
+__Request Type:__ none
+
+__Default Request:__ none
 
 __Examples__
->
->
->
->
->
+> /r
 
 ## Context Management
 
