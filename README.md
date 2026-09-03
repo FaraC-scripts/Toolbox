@@ -13,14 +13,14 @@ If you'd like try out Toolbox in an exampled scenario, check out the __After the
 ${After the End}
 
 __User Guide__
-- [Tools](#Tools)
-- [Tool Visibility](#Tool-Visiblity)
-- [Compound Requests](#Compound-Requests)
-- [Detailed Tool List](#Detailed-Tool-List)
-- [Context Management](#Context-Management)
-- [Toolbox Settings](#Toolbox-Settings)
-- [Prompt Sequence](#Prompt-Sequence)
-- [Tool Scheduling and Automation](#Tool-Scheduling-and-Automation)
+- [🛠️ Tools](#-Tools-)
+- [👁️‍🗨️ Tool Visibility](#-Tool-Visiblity-)
+- [🧩 Compound Requests](#-Compound-Requests-)
+- [🔎 Detailed Tool List](#-Detailed-Tool-List-)
+- [🗂️ Context Management](#-Context-Management-)
+- [⚙️ Toolbox Settings](#-Toolbox-Settings-)
+- [📋️ Prompt Sequence](#-Prompt-Sequence-)
+- [📅Tool Scheduling and Automation](#-Tool-Scheduling-and-Automation-)
 
 __Installation Guide__
 - [Installing through AI Dungeon](#Installing-through-AI-Dungeon)
@@ -32,7 +32,7 @@ __Installation Guide__
 # User Guide
 
 
-## Tools
+## 🛠️ Tools 🛠️
 
 __Tools__ are special scripted functions that offer a wide range of utility.
 
@@ -51,7 +51,7 @@ Your request __can be edited here__, but the rest of the input should not be mod
 
 For a brief overview of each tool command and what it does, enter _/list_ inside of a Toolbox scenario. For a more detailed look at tools, go to the [Detailed Tool List](#Detailed-Tool-List) below.
 
-## Tool Visibility
+## 👁️‍🗨️ Tool Visibility 👁️‍🗨️
 
 Many tools create an output that is __not visible to the AI by default__. You can always tell by the following line at the top of a tool output:
 
@@ -79,7 +79,7 @@ If you have a story card or prompt card with _Character (Protagonist)_ in the ti
 
 The final line, the directive to continue the story, will only be added to context for 1-2 outputs after the tool output.
 
-## Compound Requests
+## 🧩 Compound Requests 🧩
 The __Update__, __Motive__, and __Reflect__ tools accept __compound requests__.
 
 __Compound requests__ have two parts, an __identifier__ and __instructions__, separated by a semicolon.
@@ -92,7 +92,7 @@ In this case, the __identifier__, _James's Background_, determines the card to u
 
 The __instructions__, _include what he shared..._, determine what sort of updates to make. 
 
-## Detailed Tool List
+## 🔎 Detailed Tool List 🔎
 [🔱 CYOA 🔱](#-CYOA-) - [📷 Snapshot 📷](#-Snapshot-) - [💭 Mindview 💭](#-Mindview-) - [🗺️ Map 🗺️](#-Map-) - [⏩ Fast Forward ⏩](#-Fast-Forward-) - [👤 Protagonist 👤](#-Protagonist-) - [🎬 Direct 🎬](#-Direct-) - [🎴 Card 🎴](#-Card-) - [🔄 Update 🔄](#-Update-) - [🎭 Motive 🎭](#-Motive-) - [💡 Reflect 💡](#-Reflect-) - [💥 Use 💥](#-Use-) - [🌐 Relationships 🌐](#-Relationships-) 
 
 ### 🔱 __CYOA__ 🔱
@@ -516,7 +516,7 @@ __Default Request:__ none
 __Examples__
 > /r
 
-## Context Management
+## 🗂️ Context Management 🗂️
 
 Toolbox adds a number of elements to the context sent to the AI every action. Each element can be turned on or off in the __Context Settings__ story card. The number of tokens they use are also listed there, as well as in _/help_
 
@@ -528,7 +528,7 @@ Toolbox adds a number of elements to the context sent to the AI every action. Ea
 - __Imperative:__ a very strong instruction to move the story forward
 - __Boundary Markers:__ small notations that help separate context elements
 
-## Toolbox Settings
+## ⚙️ Toolbox Settings ⚙️
 
 [Tool Settings](#Tool-Settings) - [Context Settings](#Context-Settings) - [Misc Settings](#Misc-Settings)
 
@@ -624,7 +624,7 @@ __Output Processing__
 - Set Paragraph Break Length (Default: 3): The number of sentences required for an automatic line break.
   - This setting only functions if Add Paragraph Breaks is set to true
 
-## Prompt Sequence
+## 📋️ Prompt Sequence 📋️
 
 Your __Prompt Sequence__ can be found and edited in your Story Cards, in the __Settings__ category.
 
@@ -638,7 +638,7 @@ It will look something like this:
 
 Each of your prompt cards should be on its own line, in the order the AI sees them. You can change the order here. You can also hide individual prompt cards here by changing Y/N next to the card name.
 
-## Tool Scheduling and Automation
+## 📅 Tool Scheduling and Automation 📅
 
 # Installation Guide
 
