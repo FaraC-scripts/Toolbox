@@ -14,13 +14,13 @@ ${After the End}
 
 __User Guide__
 - [🛠️ Tools](#-Tools-)
-- [👁️‍🗨️ Tool Visibility](#-Tool-Visiblity-)
-- [🧩 Compound Requests](#-Compound-Requests-)
-- [🔎 Detailed Tool List](#-Detailed-Tool-List-)
-- [🗂️ Context Management](#-Context-Management-)
-- [⚙️ Toolbox Settings](#-Toolbox-Settings-)
-- [📋️ Prompt Sequence](#-Prompt-Sequence-)
-- [📅Tool Scheduling and Automation](#-Tool-Scheduling-and-Automation-)
+- [👁️‍🗨️ Tool Visibility](##️⃣-Tool-Visiblity-)
+- [🧩 Compound Requests](##️⃣-Compound-Requests-)
+- [🔎 Detailed Tool List](##️⃣-Detailed-Tool-List-)
+- [🗂️ Context Management](##️⃣-Context-Management-)
+- [⚙️ Toolbox Settings](##️⃣-Toolbox-Settings-)
+- [📋️ Prompt Sequence](##️⃣-Prompt-Sequence-)
+- [📅Tool Scheduling and Automation](##️⃣-Tool-Scheduling-and-Automation-)
 
 __Installation Guide__
 - [Installing through AI Dungeon](#Installing-through-AI-Dungeon)
