@@ -20,7 +20,7 @@ __📕 User Guide 📕__
 - [🗂️ Context Management](#Context-Management)
 - [⚙️ Toolbox Settings](#Toolbox-Settings)
 - [📋️ Prompt Sequence](#Prompt-Sequence)
-- [📅Tool Scheduling and Automation](#Tool-Scheduling-and-Automation)
+- [📅 Tool Scheduling and Automation](#Tool-Scheduling-and-Automation)
 
 __📥 Installation Guide 📥__
 - [⚡ Installing through AI Dungeon](#Installing-through-AI-Dungeon)
