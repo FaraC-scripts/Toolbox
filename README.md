@@ -14,7 +14,7 @@ ${After the End}
 
 __📕 User Guide 📕__
 - [🛠️ Tools](#Tools)
-- [👁️‍🗨️ Tool Visibility](#Tool-Visiblity)
+- [👁️‍🗨️ Tool Visibility](#Tool-Visibility)
 - [🧩 Compound Requests](#Compound-Requests)
 - [🔎 Detailed Tool List](#Detailed-Tool-List)
 - [🗂️ Context Management](#Context-Management)
@@ -339,10 +339,7 @@ This is a __partial output tool__, meaning it consumes a small portion of your o
 
 This motive will get recorded immediately at the bottom Edward's card's entry.
 
-> ### Story Card
-> Title: 🧍 Edward - Character (Loyal Hero)
-> 
-> Entry:
+> ### 🧍 Edward - Character (Loyal Hero)
 > 
 > \> Background: a hero of the Queendom of Aval
 > 
@@ -639,6 +636,29 @@ It will look something like this:
 Each of your prompt cards should be on its own line, in the order the AI sees them. You can change the order here. You can also hide individual prompt cards here by changing Y/N next to the card name.
 
 <h2 id="Tool-Scheduling-and-Automation"><strong>📅 Tool Scheduling and Automation 📅</strong></h3>
+
+Tools can be __scheduled__ to happen automatically, repeating every __#__ turns
+
+To do this, include the _-s#_ option in your input after a slash command and before the request
+> /card -s20 a new character
+
+The number after the "-s" determines how often the tool activates. If no number is included, it defaults to 10. The tool also activates on the turn you schedule it.
+
+Scheduling a command creates a 📅 Tool Schedule story card or adds a new line if one already exists. You can adjust or remove automated tools here.
+> ### 📅 Tool Schedule
+> 
+> Scheduled Commands - Sorted by Upcoming
+> 
+> Tool: Card - Timer: 19 - Rate: 20 - Start: 4 - Request: a new character
+
+Each line in the schedule controls a command, and has the following parts:
+- __Tool:__ the name of the tool being activated
+- __Timer:__ how many turns before this tool activates again
+- __Rate:__ how often this tool activates
+- __Start:__ the turn this tool was created, used to calculate when it should activate again
+- __Request:__ the request provided for the tool. If none is included when scheduling the command, this will be the tool's default request.
+
+___Note:___ Tools can only activate on turns when you aren't activating another tool. If a tool is scheduled for activation and you input a tool command, it will wait for the next opportunity. If two tools are scheduled for activation on the same turn, the one higher in the list in the Tool Schedule card will activate, and the next tool will wait for the next opportunity to activate.
 
 # 📥 Installation Guide 📥
 
