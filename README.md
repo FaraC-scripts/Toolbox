@@ -8,9 +8,9 @@ If you'd like to create a custom adventure and play it with Toolbox, check out t
 
 ${Universal Generator}
 
-If you'd like try out Toolbox in an exampled scenario, check out the __After the End__ scenario:
+//If you'd like try out Toolbox in an exampled scenario, check out the __After the End__ scenario:
 
-${After the End}
+//${After the End}
 
 __📕 User Guide 📕__
 - [🛠️ Tools](#Tools)
