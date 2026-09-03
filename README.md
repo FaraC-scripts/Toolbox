@@ -14,8 +14,8 @@ ${After the End}
 
 __User Guide__
 - [🛠️ Tools](#-Tools-)
-- [👁️‍🗨️ Tool Visibility](##️⃣-Tool-Visiblity-)
-- [🧩 Compound Requests](##️⃣-Compound-Requests-)
+- [👁️‍🗨️ Tool Visibility](#%EF%B8%8F-Tool-Visiblity-%EF%B8%8F)
+- [🧩 Compound Requests](##️⃣-Compound-Requests-#️⃣)
 - [🔎 Detailed Tool List](##️⃣-Detailed-Tool-List-)
 - [🗂️ Context Management](##️⃣-Context-Management-)
 - [⚙️ Toolbox Settings](##️⃣-Toolbox-Settings-)
