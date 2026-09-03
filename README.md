@@ -23,11 +23,11 @@ __📕 User Guide 📕__
 - [📅Tool Scheduling and Automation](#Tool-Scheduling-and-Automation)
 
 __📥 Installation Guide 📥__
-- [Installing through AI Dungeon](#Installing-through-AI-Dungeon)
-- [Manual Installation](#Manual-Installation)
-- [Changing Default Settings](#Changing-Default-Settings)
-- [Universal Generator Prompts](#Universal-Generator-Prompts)
-- [Use-and-Acknowledgments](#Use-and-Acknowledgments)
+- [⚡ Installing through AI Dungeon](#Installing-through-AI-Dungeon)
+- [⬇️ Manual Installation](#Manual-Installation)
+- [⚙️ Changing Default Settings](#Changing-Default-Settings)
+- [💬 Universal Generator Prompts](#Universal-Generator-Prompts)
+- [🎉 Use and Acknowledgments](#Use-and-Acknowledgments)
 
 # 📕 User Guide 📕
 
@@ -642,12 +642,12 @@ Each of your prompt cards should be on its own line, in the order the AI sees th
 
 # 📥 Installation Guide 📥
 
-<h2 id="Installing-through-AI-Dungeon"><strong>Installing through AI Dungeon</strong></h3>
+<h2 id="Installing-through-AI-Dungeon"><strong>⚡ Installing through AI Dungeon ⚡</strong></h3>
 
-<h2 id="Manual-Installation"><strong>Manual Installation</strong></h3>
+<h2 id="Manual-Installation"><strong>⬇️ Manual Installation ⬇️</strong></h3>
 
-<h2 id="Changing-Default-Settings"><strong>Changing Default Settings</strong></h3>
+<h2 id="Changing-Default-Settings"><strong>⚙️ Changing Default Settings ⚙️</strong></h3>
 
-<h2 id="Universal-Generator-Prompts"><strong>Universal Generator Prompts</strong></h3>
+<h2 id="Universal-Generator-Prompts"><strong>💬 Universal Generator Prompts 💬</strong></h3>
 
-<h2 id="Use-and-Acknowledgments"><strong>Use and Acknowledgments</strong></h3>
+<h2 id="Use-and-Acknowledgments"><strong>🎉 Use and Acknowledgments 🎉</strong></h3>
