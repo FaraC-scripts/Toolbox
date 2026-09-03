@@ -92,6 +92,7 @@ In this case, the __identifier__, _James's Background_, determines the card to u
 The __instructions__, _include what he shared..._, determine what sort of updates to make. 
 
 <h2 id="Detailed-Tool-List"><strong>🔎 Detailed Tool List 🔎</strong></h3>
+
 [🔱 CYOA 🔱](#-CYOA-) - [📷 Snapshot 📷](#-Snapshot-) - [💭 Mindview 💭](#-Mindview-) - [🗺️ Map 🗺️](#-Map-) - [⏩ Fast Forward ⏩](#-Fast-Forward-) - [👤 Protagonist 👤](#-Protagonist-) - [🎬 Direct 🎬](#-Direct-) - [🎴 Card 🎴](#-Card-) - [🔄 Update 🔄](#-Update-) - [🎭 Motive 🎭](#-Motive-) - [💡 Reflect 💡](#-Reflect-) - [💥 Use 💥](#-Use-) - [🌐 Relationships 🌐](#-Relationships-) 
 
 ### 🔱 __CYOA__ 🔱
