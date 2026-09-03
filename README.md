@@ -539,7 +539,7 @@ Toolbox adds a number of elements to the context sent to the AI every action. Ea
   - __Misc Settings:__ manages warning messages and output processing
     
 ### Tool Settings
-General
+__General__
 - Set Tool Output Size (Default: 150): changes the word count target for each full tool output.
   - Does not affect Motive or Reflect, and only sets a maximum size for CYOA 
   - This should be about 75% of your Response Length, but can be adjusted up or down to preference.
@@ -547,19 +547,19 @@ General
 - Enable Reminder Text (Default: true): if true, non-essential text reminders about how tools work are included when certain tools are used.
   - These reminders are on lines starting with "//"
 
-Visibility
+__Visibility__
 - Default to Snapshot Visible (Default: false): if true, Snapshot outputs default to being visible to the AI.
 - Default to Mindview Visible (Default: false): if true, Mindview outputs default to being visible to the AI.
 
-CYOA
+__CYOA__
 - Set CYOA Choice Size (Default: 25): changes the word count target for each of the four options CYOA presents
 
-Direct
+__Direct__
 - Set Scene Instruction Fade (Default: 4): The number of outputs scene instructions created by Direct will remain visible for.
   - Afterwards, they will be hidden from the AI
   - If set to 0 or -1, scene instructions won't get hidden automatically after a set time
 
-Card
+__Card__
 - Default to Prompt Cards (Default: true): If true, prompt cards without triggers are created.
   - If false, traditional story cards with triggers are created.
   - Prompt cards always appear in context by default
@@ -568,7 +568,7 @@ Card
   - If false, each word in the card title except for small words like "and" will be used as separate triggers.
   - Only matters if creating a traditional story card, not a prompt card
 
-Motive
+__Motive__
 - Set Motive Size (Default: 25): changes the word count target for motives.
 - Set Motive Cap (Default: 1): The number of motives that are saved for each character.
   - The most recent motive for each character will always be their "Current Motive"
@@ -577,7 +577,7 @@ Motive
 - Set Motive Fade (Default: 5): The number of outputs a motive will persist for, after which it will be deleted.
   - If set to 0 or -1, motives won't get deleted automatically after a set time
 
-Reflect
+__Reflect__
 - Set Reflect Size (Default: 35): changes the word count target for reflections.
 - Set Reflect Cap (Default: 3): The number of reflections that are saved for each character.
   - The most recent reflection for each character will always be their "Current Thoughts"
@@ -587,10 +587,56 @@ Reflect
   - If set to 0 or -1, reflections won't get deleted automatically after a set time
 
 ### Context Settings
+__Context Positioning__
+- Set Prompt Depth (Default: 16): How many paragraphs of context behind which various context elements are inserted
+  - These elements include Default Instructions, Prompt Cards, Basic Personification, and Echo Ban
+- Include Instructions Behind Prompt Cards (Default: true): If true, Default Instructions (if enabled) will be inserted into context just behind prompt cards.
+  - If false, Default Instructions will be inserted just in front of prompt cards.
+
+__Context Elements__
+  - For each of the following, if set to true, that element will be included in context.
+  - If set to false, that element will be omitted.
+- Enable Default Instructions (Default: true): A large set of generic writing guidelines.
+- Enable Prompt Cards (Default: true): The contents of story cards with the "Prompt" type.
+- Enable Basic Personification (Default: true): instructions encouraging complex characters.
+- Enable Advanced Personification (Default: false): More extensive instructions added just after each character card.
+  - Works with both prompt cards and traditional story cards
+  - Applies to any card with "- Character" in the title line
+  - Only applies to traditional story cards when they are triggered
+- Enable Echo Ban (Default: true): A strong instruction aimed at preventing repetitive outputs.
+- Enable Imperative (Default: true): A very strong instruction to move the story forward.
+- Enable Boundary Markers (Default: true): Small notations that help separate context elements
 
 ### Misc Settings
+__Warnings__
+- Enable Context Size Warning (Default: true): If true, shows a warning when your Tokens in Context exceeds your Context Length
+  - Tokens in Context includes the following elements, in the order they get trimmed:
+  - Older Story, Story Cards, Plot Essentials, Instructions, Prompt Cards, Recent Story
+  - To save some context, you can disable components in the Context Settings story card.
+  - Prompt cards can be individually disabled in the Prompt Sequence story card.
+- Set Context Warning Frequency (Default: 10): The number of outputs before another context size warning can be shown.
+  - Context warnings after the first are presented in a more compact format.
+
+__Output Processing__
+- Enable Output Trimming (Default: true): If true, outputs will be trimmed to the nearest sentence ending.
+  - This is functionally very similar to having Raw Model Output set to Off.
+- Add Paragraph Breaks (Default: true): If true, the final paragraph of an output will have a linebreak added to it if it has more than a certain number of sentences.
+- Set Paragraph Break Length (Default: 3): The number of sentences required for an automatic line break.
+  - This setting only functions if Add Paragraph Breaks is set to true
 
 ## Prompt Sequence
+
+Your __Prompt Sequence__ can be found and edited in your Story Cards, in the __Settings__ category.
+
+It will look something like this:
+
+> Y - 🌐 Scenario
+> 
+> Y - 🌎 Ashen Veil - World
+> 
+> Y - 🗺️ The Verdant Marrow - Region
+
+Each of your prompt cards should be on its own line, in the order the AI sees them. You can change the order here. You can also hide individual prompt cards here by changing Y/N next to the card name.
 
 ## Tool Scheduling and Automation
 
