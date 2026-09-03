@@ -18,7 +18,6 @@ __User Guide__
 - [Compound Requests](#Compound-Requests)
 - [Detailed Tool List](#Detailed-Tool-List)
 - [Context Management](#Context-Management)
-- [Critical Components](#Critical-Components)
 - [Toolbox Settings](#Toolbox-Settings)
 - [Prompt Sequence](#Prompt-Sequence)
 - [Tool Scheduling and Automation](#Tool-Scheduling-and-Automation)
@@ -519,9 +518,77 @@ __Examples__
 
 ## Context Management
 
-## Critical Components
+Toolbox adds a number of elements to the context sent to the AI every action. Each element can be turned on or off in the __Context Settings__ story card. The number of tokens they use are also listed there, as well as in _/help_
+
+- __Default Instructions:__ a large set of generic writing guidelines
+- __Prompt Cards:__ the contents of story cards with the "Prompt" type
+- __Basic Personification:__ instructions encouraging complex characters
+- __Advanced Personification:__ more extensive instructions added after the story card or prompt card for each character
+- __Echo Ban:__ a strong instruction aimed at preventing repetitive outputs
+- __Imperative:__ a very strong instruction to move the story forward
+- __Boundary Markers:__ small notations that help separate context elements
 
 ## Toolbox Settings
+
+[Tool Settings](#Tool-Settings) - [Context Settings](#Context-Settings) - [Misc Settings](#Misc-Settings)
+
+- Settings for Toolbox can be found and edited in your Story Cards, near the bottom
+- Settings are broken up into three Settings cards
+  - __Tool Settings:__ manages how tools function, with both general and tool-specific settings
+  - __Context Settings:__ manages the various elements Toolbox adds to context every turn
+  - __Misc Settings:__ manages warning messages and output processing
+    
+### Tool Settings
+General
+- Set Tool Output Size (Default: 150): changes the word count target for each full tool output.
+  - Does not affect Motive or Reflect, and only sets a maximum size for CYOA 
+  - This should be about 75% of your Response Length, but can be adjusted up or down to preference.
+  - If your Response Length is 400, this should be set to 300.
+- Enable Reminder Text (Default: true): if true, non-essential text reminders about how tools work are included when certain tools are used.
+  - These reminders are on lines starting with "//"
+
+Visibility
+- Default to Snapshot Visible (Default: false): if true, Snapshot outputs default to being visible to the AI.
+- Default to Mindview Visible (Default: false): if true, Mindview outputs default to being visible to the AI.
+
+CYOA
+- Set CYOA Choice Size (Default: 25): changes the word count target for each of the four options CYOA presents
+
+Direct
+- Set Scene Instruction Fade (Default: 4): The number of outputs scene instructions created by Direct will remain visible for.
+  - Afterwards, they will be hidden from the AI
+  - If set to 0 or -1, scene instructions won't get hidden automatically after a set time
+
+Card
+- Default to Prompt Cards (Default: true): If true, prompt cards without triggers are created.
+  - If false, traditional story cards with triggers are created.
+  - Prompt cards always appear in context by default
+  - Prompts are configurable in Context Settings and Prompt Sequence
+- Use Full-Title Triggers (Default: true): If true, the entire card title will be used as its trigger.
+  - If false, each word in the card title except for small words like "and" will be used as separate triggers.
+  - Only matters if creating a traditional story card, not a prompt card
+
+Motive
+- Set Motive Size (Default: 25): changes the word count target for motives.
+- Set Motive Cap (Default: 1): The number of motives that are saved for each character.
+  - The most recent motive for each character will always be their "Current Motive"
+  - If this is above 1, older motives will be converted to "Prior Motive"
+  - If a new motive is added past the cap, the oldest will be deleted.
+- Set Motive Fade (Default: 5): The number of outputs a motive will persist for, after which it will be deleted.
+  - If set to 0 or -1, motives won't get deleted automatically after a set time
+
+Reflect
+- Set Reflect Size (Default: 35): changes the word count target for reflections.
+- Set Reflect Cap (Default: 3): The number of reflections that are saved for each character.
+  - The most recent reflection for each character will always be their "Current Thoughts"
+  - If this is above 1, older reflections will be converted to "Prior Thoughts"
+  - If a new reflection is added past the cap, the oldest will be deleted.
+- Set Reflect Fade (Default: 10): The number of outputs a reflection will persist for, after which it will be deleted.
+  - If set to 0 or -1, reflections won't get deleted automatically after a set time
+
+### Context Settings
+
+### Misc Settings
 
 ## Prompt Sequence
 
