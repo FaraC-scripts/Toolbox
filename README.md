@@ -662,7 +662,7 @@ ___Note:___ Tools can only activate on turns when you aren't activating another 
 
 Go to the __🧰 Toolbox 🧰__ script page:
 
-[https://play.aidungeon.com/script/2U2w89VS3-Zq/toolbox?share=true](https://play.aidungeon.com/script/2U2w89VS3-Zq/toolbox?share=true)
+[https://play.aidungeon.com/scenario/2U2w89VS3-Zq/toolbox?share=true&published=true](https://play.aidungeon.com/scenario/2U2w89VS3-Zq/toolbox?share=true&published=true)
 
 Click the __Save__ button.
 
