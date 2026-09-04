@@ -6,7 +6,7 @@ function toolbox(phase){
   const DEFAULT_SETTINGS = {
     "Hidden": {
       // Whether the scenario's normal opening will be replaced by one dynamically created from available prompt cards.
-      "Dynamic Opening": false
+      "Dynamic Opening": false 
     },
     "Tool": {
       // The number of tokens the AI is asked to output when using tools. Decrease for shorter outputs. Increase for longer.
@@ -65,7 +65,7 @@ function toolbox(phase){
 ## DO NOT repeat yourself or copy from the context.
 ## INSTEAD, Begin your output with a new sentence describing new dialogue or actions starting just after the context stops.\n`
 
-  const PROTAGONIST = getProtagonist();
+  let PROTAGONIST = getProtagonist();
 
   const DEFAULT_INSTRUCTIONS = `#AI Instructions
 ## Role: Interactive Writer,
@@ -1836,6 +1836,8 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
       removeCard(protag.title, protag.type);
     }
+
+    PROTAGONIST = getProtagonist();
 
     storyCards.forEach(c => {
       c.entry = c.entry.replace(/!{protagonist}/gi, PROTAGONIST);
