@@ -693,9 +693,21 @@ When all four scripts are pasted in, make sure to click __Save__.
 
 <h2 id="Changing-Default-Settings"><strong>⚙️ Changing Default Settings ⚙️</strong></h3>
 
-___NOTE___: If you enable Toolbox's Default Instructions, you need to create a blank AI Instructions component in your scenario __and press enter to create an empty line__. If you don't create one, or leave the instructions entirely blank by leaving out the empty line, AI Dungeon will include its own default instructions __in addition to the ones Toolbox provides__.
+###__Default Settings can only be changed if using manual installation.__
 
-<h2 id="Universal-Generator-Prompts"><strong>💬 Universal Generator Placeholders 💬</strong></h3>
+You can configure the default Toolbox settings your scenarios will start with by editing the DEFAULT_SETTINGS object at the top of the Library section of your scenario's scripts, just inside of the Toolbox main function. Do not change any of the text in quotation marks. Only change numbers and true|false values.
+
+Of particular note are the __Hidden > Dynamic Opening__ and __Context > Default Instructions__ settings. These are the settings that differ from the version of __Toolbox__ implemented in __Universal Generator__.
+
+__Dynamic Opening__ is a __hidden setting__ that can only be altered in the script editor. If set to __true__ will replace the standard opening for your scenario with one that changes based on various __Prompt Cards__, either ones that are already-present, or provided at playtime through placeholders. For more information on how dynamic openings work, go here:
+
+[https://github.com/FaraC-scripts/Universal-Generator-Scenario-Publishing/blob/main/README.md#dynamic-openings](https://github.com/FaraC-scripts/Universal-Generator-Scenario-Publishing/blob/main/README.md#dynamic-openings)
+
+The __Default Instructions__ setting provides a fairly large set of writing instructions, but they can be overbearing if you are trying to produce a specific or unique writing style, so by default it is __disabled__. This setting can also be changed in-adventure, in the __Context Settings__ story card.
+
+___NOTE___: If you enable Toolbox's __Default Instructions__, you need to create a blank AI Instructions component in your scenario __and press enter to create an empty line__. If you don't create a blank AI Instructions component (with an empty line), AI Dungeon will include its own default instructions __in addition to the one Toolbox provides__.
+
+<h2 id="Universal-Generator-Placeholders"><strong>💬 Universal Generator Placeholders 💬</strong></h3>
 
 Toolbox scenarios can be configured to accept Universal Generator final outputs (prompts) from your players as placeholders. 
 
@@ -703,7 +715,7 @@ The three placeholders you can create are the __main placeholder__, __protagonis
 
 The __main placeholder__ accepts any valid Universal Generator prompt and converts its components into __prompt cards__.
 
-To enable the protagonist placeholder, create a story card with the custom type "Placeholder" and the name "Placeholder - Main". The story card's entry needs to include a normal AI Dungeon placeholder to allow the player somewhere to paste their prompt, e.g.,
+To enable the protagonist placeholder, create a story card with the custom type "Placeholder" and the name "Placeholder - Main". The story card's entry needs to only include a normal AI Dungeon placeholder to allow the player somewhere to paste their prompt, e.g.,
 
 > ### Type
 >
@@ -717,7 +729,7 @@ To enable the protagonist placeholder, create a story card with the custom type 
 >
 > ### Entry
 > 
->${🌌 Paste a Universal Generator prompt here}
+> ${🌌 Paste a Universal Generator prompt here}
 
 The __protagonist placeholder__ accepts a prompt from the player and filters it to find a Character component with "Character (Protagonist)" in its name. Failing that, it will find the first Character component. It will also find any other Character-type components associated with the protagonist, such as Appearance or Equipment. It takes these components and uses them to __replace any already-existing "Character (Protagonist)" prompt card__. It will also remove Appearance, Personality, and Speech cards associated with the old protagonist. Other components from the player-provided protagonist like Equipment and Abilities will override old components of the same type.
 
