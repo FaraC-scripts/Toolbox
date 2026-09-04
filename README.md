@@ -5,8 +5,8 @@ __Toolbox__ is a context management system and robust set of scripted tools for 
 This document covers both playing with Toolbox and installing it into your own scenarios.
 
 If you'd like to create a custom adventure and play it with Toolbox, check out the __Universal Generator__ scenario:
-[
-https://play.aidungeon.com/scenario/Kj-pypp8vkwc/universal-generator?share=true&published=true](https://play.aidungeon.com/scenario/Kj-pypp8vkwc/universal-generator?share=true&published=true)
+
+[https://play.aidungeon.com/scenario/Kj-pypp8vkwc/universal-generator?share=true&published=true](https://play.aidungeon.com/scenario/Kj-pypp8vkwc/universal-generator?share=true&published=true)
 
 __📕 User Guide 📕__
 - [🛠️ Tools](#Tools)
