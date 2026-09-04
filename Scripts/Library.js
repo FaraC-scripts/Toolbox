@@ -6,7 +6,7 @@ function toolbox(phase){
   const DEFAULT_SETTINGS = {
     "Hidden": {
       // Whether the scenario's normal opening will be replaced by one dynamically created from available prompt cards.
-      "Dynamic Opening": false 
+      "Dynamic Opening": false
     },
     "Tool": {
       // The number of tokens the AI is asked to output when using tools. Decrease for shorter outputs. Increase for longer.
@@ -116,7 +116,7 @@ function toolbox(phase){
 
   const VISIBILITY_SYM = "👁️‍🗨️";
 
-  const BASIC_FILTERS = ["⛔", "⚠️", "⚙️", "📅", VISIBILITY_SYM, "//"] 
+  const BASIC_FILTERS = ["⛔", "⚠️", "⚙️", "📅", "📝", VISIBILITY_SYM, "//"] 
 
   const ABBREVIATIONS = new Set([
       "mr.", "mrs.", "ms.", "dr.", "prof.", "capt.", "lt.", "gen.", "sen.", "rep.",
@@ -406,7 +406,7 @@ General
  >> This should be about 75% of your Response Length, but can be adjusted up or down to preference.
  >> If your Response Length is 400, this should be set to 300.
 > Enable Reminder Text (Default: ${DEFAULT_SETTINGS["Tool"]["Reminder Text"]}): if true, non-essential text reminders about how tools work are included when certain tools are used.
- >> These reminders are on lines starting with "//"
+ >> These reminders are on lines starting with "📝"
 
 Visibility
 > Default to Snapshot Visible (Default: ${DEFAULT_SETTINGS["Tool"]["Snapshot Visible"]}): if true, Snapshot outputs default to being visible to the AI.
@@ -763,7 +763,7 @@ Output Processing
             "the type of options you want, e.g., /a a witty retort",
             [
               {
-                message: Message.fromPool("prepend", Settings.getValue("Tool", "Reminder Text") ? "// Select one of the below options by entering /1, /2, /3, or /4\n" : ""),
+                message: Message.fromPool("prepend", Settings.getValue("Tool", "Reminder Text") ? "📝 Select one of the below options by entering /1, /2, /3, or /4\n" : ""),
                 phase: "output"
               },
               {
@@ -945,7 +945,7 @@ ${`Multi-line text block. One or more paragraphs summarizing events, starting wh
             "the character to switch to, e.g., /p Jane",
             [
               {
-                message: Message.fromPool("prepend", `👤 New Protagonist: \${request}${Settings.getValue("Tool", "Reminder Text") ? "\n// Story cards will be adjusted to reflect the change in protagonist on your next action." : ""}\n\n`),
+                message: Message.fromPool("prepend", `👤 New Protagonist: \${request}${Settings.getValue("Tool", "Reminder Text") ? "\n📝 Story cards will be adjusted to reflect the change in protagonist on your next action." : ""}\n\n`),
                 phase: "output"
               }
             ],
@@ -1993,7 +1993,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
     lines = lines.filter((l,i) => l || i > lastSymIdx);
 
-    if (lastSymIdx > 0 && Settings.getValue("Tool", "Reminder Text")) lines.splice(lastSymIdx + 1, 0, `// Costs and gains have been removed from / added to your protagonist's Inventory and/or Resources cards`)
+    if (lastSymIdx > 0 && Settings.getValue("Tool", "Reminder Text")) lines.splice(lastSymIdx + 1, 0, `📝 Costs and gains have been removed from / added to your protagonist's Inventory and/or Resources cards`)
       
     globalThis.text = lines.join("\n");
 
@@ -2191,7 +2191,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
         state.lastContextWarning = count;
 
         Message.postFromPool("prepend", "output", `${getBuffer()}⚠️ Context Size Warning - Tokens in Context: ${tokensPresent} / Context Length: ${tokensAvailable} ⚠️
-// For more details, read the Notes section of the Misc Settings story card.\n\n`);
+📝 For more details, read the Notes section of the Misc Settings story card.\n\n`);
       } else if (state.lastContextWarning + frequency <= count) {
         state.lastContextWarning = count;
 
@@ -2704,7 +2704,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     const card = nearestCardMatch(name, characterCardFilter, promptSort, false);
     const cardName = card?.title || `🧠 ${name} - Mind`;
 
-    globalThis.text = (`${getBuffer()}${sym} ${motive?.trim().replaceAll("*", "")} ${Settings.getValue("Tool", "Reminder Text") ? `\n// This motive has been recorded in: ${cardName}` : ""}\n\n` + lines.join("\n")).replace(/\n{3,}/g, '\n\n'); 
+    globalThis.text = (`${getBuffer()}${sym} ${motive?.trim().replaceAll("*", "")} ${Settings.getValue("Tool", "Reminder Text") ? `\n📝 This motive has been recorded in: ${cardName}` : ""}\n\n` + lines.join("\n")).replace(/\n{3,}/g, '\n\n'); 
 
     if (state.tempMotiveData?.count === continueCount())
       removeLatestAddendum("Motive", card.id);
@@ -2761,7 +2761,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     const card = nearestCardMatch(name, characterCardFilter, promptSort, false);
     const cardName = card?.title || `🧠 ${name} - Mind`;
 
-    globalThis.text = (`${getBuffer()}${sym} ${reflection?.trim()} ${Settings.getValue("Tool", "Reminder Text") ? `\n// This reflection has been recorded in: ${cardName}` : ""}\n\n` + lines.join("\n")).replace(/\n{3,}/g, '\n\n');
+    globalThis.text = (`${getBuffer()}${sym} ${reflection?.trim()} ${Settings.getValue("Tool", "Reminder Text") ? `\n📝 This reflection has been recorded in: ${cardName}` : ""}\n\n` + lines.join("\n")).replace(/\n{3,}/g, '\n\n');
 
     if (state.tempReflectData?.count === continueCount())
       removeLatestAddendum("Reflect", card.id);
@@ -2995,10 +2995,10 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 
     if (Settings.getValue("Tool", "Reminder Text"))
       globalThis.text = `🎴 Story Card or Prompt Card? (S/P): ${isStoryCard ? "S" : "P"}${Settings.getValue("Tool", "Reminder Text") ? `
-// A ${Settings.getValue("Tool", "Prompt Cards") ? "prompt card" : "story card"} has been created with the details below.
-// If you Undo, that card will remain in your Story Cards.
-// If you Retry, that card will be deleted and a new card will be added.
-// If you edit the text below and take a forward action (Do, Say, Continue) that card will be updated to match the edited text.\n` : ""}
+📝 A ${Settings.getValue("Tool", "Prompt Cards") ? "prompt card" : "story card"} has been created with the details below.
+📝 If you Undo, that card will remain in your Story Cards.
+📝 If you Retry, that card will be deleted and a new card will be added.
+📝 If you edit the text below and take a forward action (Do, Say, Continue) that card will be updated to match the edited text.\n` : ""}
 ${globalThis.text}`;
 
     if (state.tempCardData?.count === continueCount()) {
@@ -3167,11 +3167,11 @@ ${globalThis.text}`;
         .join("\n");
     
     globalThis.text = `${Tool.getSym("update")} Update or Restore? (U/R): U${Settings.getValue("Tool", "Reminder Text") ?`
-// ${card.title} has been updated with the text below
-// If you Undo, the updates will be saved
-// If you Retry, new updates will be generated and applied
-// If you want to edit the update, change the text below and take a forward action (Do, Say, Continue). The card will be updated with the edited text.
-// If you want to restore the original card, change U to R on the ${Tool.getSym("update")} line above and take a forward action` :""}
+📝 ${card.title} has been updated with the text below
+📝 If you Undo, the updates will be saved
+📝 If you Retry, new updates will be generated and applied
+📝 If you want to edit the update, change the text below and take a forward action (Do, Say, Continue). The card will be updated with the edited text.
+📝 If you want to restore the original card, change U to R on the ${Tool.getSym("update")} line above and take a forward action` :""}
 ${text}`;
 
       updateToolCard(card, text);
