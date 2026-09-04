@@ -740,3 +740,16 @@ The __background placeholder__ works like the __main prompt__, except all of the
 To enable the protagonist placeholder, create a story card as above, but with "Placeholder - Background" as its name.
 
 <h2 id="Use-and-Acknowledgments"><strong>🎉 Use and Acknowledgments 🎉</strong></h2>
+You may use, modify and redistribute my work freely. Have fun.
+
+__However__, I ask that if you __use Toolbox in a published scenario__, you include a link back to this page:
+
+https://github.com/FaraC-scripts/Toolbox
+
+If you would like, you can also include one of these stickers in your scenario image:
+
+<img src=https://github.com/FaraC-scripts/Toolbox/blob/main/Stickers/Toolbox%20Sticker.png width=15% height=15% />
+<img src=https://github.com/FaraC-scripts/Toolbox/blob/main/Stickers/With%20Toolbox%20Sticker.png width=15% height=15% />
+<img src=https://github.com/FaraC-scripts/Toolbox/blob/main/Stickers/Universal%20Generator%20Sticker.png width=15% height=15% />
+
+To download the full-resolution version of a sticker, click it to go to its Github page and download it from there.
