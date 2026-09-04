@@ -26,7 +26,7 @@ __📥 Installation Guide 📥__
 - [⚡ Installing through AI Dungeon](#Installing-through-AI-Dungeon)
 - [⬇️ Manual Installation](#Manual-Installation)
 - [⚙️ Changing Default Settings](#Changing-Default-Settings)
-- [💬 Universal Generator Prompts](#Universal-Generator-Prompts)
+- [💬 Universal Generator Placeholders](#Universal-Generator-Placeholders)
 - [🎉 Use and Acknowledgments](#Use-and-Acknowledgments)
 
 # 📕 User Guide 📕
@@ -664,10 +664,67 @@ ___Note:___ Tools can only activate on turns when you aren't activating another 
 
 <h2 id="Installing-through-AI-Dungeon"><strong>⚡ Installing through AI Dungeon ⚡</strong></h3>
 
+Go to the __🧰 Toolbox 🧰__ script page:
+
+${Toolbox Script}
+
+Click the __Save__ button.
+
+When creating your own scenario, go to the __Details__ tab, then scroll down to the __Scripting__ section and ensure the toggle there is set to __Scripts Enabled__.
+
+Near the bottom of __Details__, in the __Scripts__ section, there is an __+Add Scripts__ button. Click that. Then, under your __Saved Scripts__ should be  __🧰 Toolbox 🧰__.
+
+Click Add. Make sure the toggle is on. And that's it, you're done.
+
+___NOTE:___ This method is quick, but has one __serious limitation__: The script does not actually load the code into your script browser, so you cannot modify __Default Settings__ (and thus also cannot use a __Dynamic Opening__, which defaults to off). If you want to be able to change these settings, you need to do a __manual installation__. 
+
 <h2 id="Manual-Installation"><strong>⬇️ Manual Installation ⬇️</strong></h3>
+Go to the __Details__ tab of your scenario, then scroll down to the __Scripting__ section and ensure the toggle there is set to __Scripts Enabled__. 
+
+Click Edit Scripts to open the scenario's script editor.
+
+Open the Scripts folder above or click the link below.
+
+[https://github.com/FaraC-scripts/Toolbox/tree/main/Scripts](https://github.com/FaraC-scripts/Toolbox/tree/main/Scripts)
+
+For each file (Library, Input, Context, Output), copy the script and paste it into the corresponding tab of your script editor.
+
+When all four scripts are pasted in, make sure to click __Save__. 
 
 <h2 id="Changing-Default-Settings"><strong>⚙️ Changing Default Settings ⚙️</strong></h3>
 
-<h2 id="Universal-Generator-Prompts"><strong>💬 Universal Generator Prompts 💬</strong></h3>
+___NOTE___: If you enable Toolbox's Default Instructions, you need to create a blank AI Instructions component in your scenario __and press enter to create an empty line__. If you don't create one, or leave the instructions entirely blank by leaving out the empty line, AI Dungeon will include its own default instructions __in addition to the ones Toolbox provides__.
+
+<h2 id="Universal-Generator-Prompts"><strong>💬 Universal Generator Placeholders 💬</strong></h3>
+
+Toolbox scenarios can be configured to accept Universal Generator final outputs (prompts) from your players as placeholders. 
+
+The three placeholders you can create are the __main placeholder__, __protagonist placeholder__ and the __background placeholder__.
+
+The __main placeholder__ accepts any valid Universal Generator prompt and converts its components into __prompt cards__.
+
+To enable the protagonist placeholder, create a story card with the custom type "Placeholder" and the name "Placeholder - Main". The story card's entry needs to include a normal AI Dungeon placeholder to allow the player somewhere to paste their prompt, e.g.,
+
+> ### Type
+>
+> Custom
+>
+> Placeholder
+>
+> ### Name
+>
+> Placeholder - Main
+>
+> ### Entry
+> 
+>${🌌 Paste a Universal Generator prompt here}
+
+The __protagonist placeholder__ accepts a prompt from the player and filters it to find a Character component with "Character (Protagonist)" in its name. Failing that, it will find the first Character component. It will also find any other Character-type components associated with the protagonist, such as Appearance or Equipment. It takes these components and uses them to __replace any already-existing "Character (Protagonist)" prompt card__. It will also remove Appearance, Personality, and Speech cards associated with the old protagonist. Other components from the player-provided protagonist like Equipment and Abilities will override old components of the same type.
+
+To enable the protagonist placeholder, create a story card as above, but with "Placeholder - Protagonist" as its name.
+
+The __background placeholder__ works like the __main prompt__, except all of the prompt cards it creates will be placed __behind__ any prompts from the __main placeholder__. 
+
+To enable the protagonist placeholder, create a story card as above, but with "Placeholder - Background" as its name.
 
 <h2 id="Use-and-Acknowledgments"><strong>🎉 Use and Acknowledgments 🎉</strong></h3>
