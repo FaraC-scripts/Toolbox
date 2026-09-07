@@ -247,7 +247,11 @@ __Examples__
 
 Make a story card or prompt card based on a requested topic.
 
-By default, a __prompt card__ is created. Prompt cards don't use triggers, and by default always appear in context behind a certain number of paragraphs. They are configurable in __Context Settings__ and __Prompt Sequence__.
+This command uses a __compound request__. The first part of the request must be the __name or topic__ of the desired card. Then, you may optionally include a semicolon followed by _instructions_ on how to create the card.
+
+> /card Aureth Leafshadow; include a section on her legendary bow
+
+By default, Card creates a __prompt card__. Prompt cards don't use triggers, and by default always appear in context behind a certain number of paragraphs. They are configurable in __Context Settings__ and __Prompt Sequence__.
 
 In the card tool's output, just below the visibility line, there will be this:
 
@@ -256,6 +260,10 @@ In the card tool's output, just below the visibility line, there will be this:
 The "P" can be changed to "S" to create a traditional story card. Its triggers will be auto-generated, and are not always going to trigger when and where you might like. You should probably review them in the story card itself to make sure they are suitable.
 
 Whether __Card__ defaults to prompt cards or story cards can be changed in __Tool Settings__.
+
+You can also use the _-p_ option when entering the Card command to get the non-default option. For instance, if you use it while your default is set to prompt cards, you will get a story card.
+
+> /card -p Aureth Leafshadow
 
 When you use __Card__, a prompt card or story card will be created from the text generated in the output. That text should have a __Title__ and __Type__ line for proper card creation.
 
@@ -277,10 +285,14 @@ __Examples__
 > /c
 >
 > /c Aureth Leafshadow
->
+> 
 > /c The Shadewood
 >
+> /c The Shadewood; include rumors of a guild of assassins hiding out inside the forest
+>
 > /c The Burning of the Shadewood
+>
+> /c -p The Burning of the Shadewood
 
 ### 🔄 __Update__ 🔄
 
