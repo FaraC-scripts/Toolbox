@@ -1,0 +1,15 @@
+Toolbox Update 3.01
+
+Card
+- Enabled compound requests for Cards. Now the text before the semicolon on a request is the desired card name or topic, and the text after a semicolon is the instructions, e.g., "/card Kevin; a mechanic at FixQuick"
+- Enabled a prompt toggle option for Cards. You can include "-p" after the slash command and before the request to switch Card outputs between prompt and story cards. This option reverses the default, so if it defaults to prompt cards it will get switched to a story card, e.g., "/card -p Kevin"
+- Fixed a bug where undoing a card command and immediately re-using the command would overwrite the first card
+- Fixed a bug where Prompt cards were getting triggers when they shouldn't
+
+Motive and Reflect
+- Fixed a bug where motives and reflections for characters without cards weren't properly creating Mind cards.
+- Now, as intended, if you want to use Motive or Reflect for a character that doesn't have a card, you can, and it will create a new card to house that character's motives and reflections. The card will have the name "🧠 ${character name} - Mind" and the type "Prompt - Mind"
+
+Toolbox Requirements
+- Removed the Raw Model Output requirement listed in Toolbox's Help command.
+- Raw Model Output IS required for Universal Generator, but not Toolbox itself.
