@@ -12,4 +12,4 @@ Motive and Reflect
 
 Toolbox Requirements
 - Removed the Raw Model Output requirement listed in Toolbox's Help command.
-- Raw Model Output IS required for Universal Generator, but not Toolbox itself.
+- Raw Model Output is required for Universal Generator, but not Toolbox itself.
