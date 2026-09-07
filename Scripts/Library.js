@@ -1,4 +1,4 @@
-// Toolbox version 3.0
+// Toolbox version 3.01
 // Feel free to use this script however you'd like. Enjoy.
 // For more information on Toolbox, visit: https://github.com/FaraC-scripts/Toolbox/
 function toolbox(phase){
@@ -6,7 +6,7 @@ function toolbox(phase){
   const DEFAULT_SETTINGS = {
     "Hidden": {
       // Whether the scenario's normal opening will be replaced by one dynamically created from available prompt cards.
-      "Dynamic Opening": false
+      "Dynamic Opening": false 
     },
     "Tool": {
       // The number of tokens the AI is asked to output when using tools. Decrease for shorter outputs. Increase for longer.
@@ -1000,11 +1000,18 @@ ${`Multi-line text block. One or more paragraphs summarizing events, starting wh
               }
             ],
             (o,r) => {
-              const isPrompt = Settings.getValue("Tool", "Prompt Cards");
+              let isPrompt = Settings.getValue("Tool", "Prompt Cards");
+              isPrompt = o.find(op => op.startsWith("p")) ? !isPrompt : isPrompt;
+
+              const parts = r.split(";");
+              const card = parts[0].trim();
+              const instructions = parts.slice(1)?.join(";")?.trim();
+              
               return `# AI Instructions
 ## Role: Encyclopedia Entry Writer
 ## Directive: Write an ${this.OUTPUT_SIZE}-word entry for the requested topic. The goal is to create lore. Don't just summarize information from the story: come up with someting new, something real and believable that fits in with the established world.
-## Requested Topic: ${r}.
+## Requested Topic: ${card}. ${instructions ? `
+## Instructions: ${instructions}.` :""}
 ## Formatting: Write in third-person, present tense, unless describing past events. Address all characters by name (if known). Write a detailed, creative lore entry for ${r}. Prioritize the most critical information first. Fill out the template fully. Use Key: Value pairs, e.g., "Appearance: ...". Never duplicate keys.
 ## Duplicate Ban: You are aboslutely forbidden from writing an article for the subject or topic of an already-existing prompt or story component.
 ## Already-Existing Entries (BANNED TOPICS): ${storyCards.map(c => 
@@ -1568,6 +1575,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     };
     Message.resetState();
     state.resetInInput = true;
+    clearTempData(null, true);
     const command = Command.fromInput(globalThis.text);
     if (!command) {
       // This gives bracketed commands consistent formatting, i.e., no carats preceeding them which may confuse the editor's note for an action attempt. 
@@ -1756,11 +1764,12 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
   }
 
   // Utilities
-  function clearTempData(name) {
+  function clearTempData(name, checkContinue) {
     const tempDataTools = ["Card", "Update", "Motive", "Reflect", "Use"];
-
     tempDataTools.forEach(t => {
-      if (name !== t) state[`temp${t}Data`] = null;
+      if (checkContinue) {
+        if (state[`temp${t}Data`]?.count === continueCount()) state[`temp${t}Data`] = null;
+      } else if (name !== t) state[`temp${t}Data`] = null;
     });
   }
 
@@ -2207,12 +2216,9 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
     if (sort) cardSet.sort(c => sort(c));
 
-    const randomCard = () => cardSet[Math.floor(Math.random()*cardSet.length)];
+    const randomCard = () => randomOnNoMatch ? cardSet[Math.floor(Math.random()*cardSet.length)] : undefined;
 
-    if (!name) {
-      if (randomOnNoMatch) return randomCard();
-      return;
-    }
+    if (!name) return randomCard();
 
     if (name.toLowerCase() === "random") return randomCard();
 
@@ -2326,7 +2332,6 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 > Optimized Context: MUST BE OFF (Gameplay -> Story Generator -> Memory System)
 > Context Length: 4000+  (Gameplay -> Story Generator -> Memory System)
 > Response Length: 200+   (Gameplay -> Story Generator -> Model Settings)
-> Raw Model Output: On   (Gameplay -> Testing & Feedback)
 
 🛠️ Tools
 > Tools are special scripted functions that offer a wide range of utility
@@ -2343,7 +2348,7 @@ ${VISIBILITY_SYM} Visibility
 > If set to N, the entire output will be excluded from context and not seen by the AI.
 
 🧩 Compound Requests
-> The Update, Motive, and Reflect tools accept compound requests.
+> The Card, Update, Motive, and Reflect tools accept compound requests.
 > Compound requests have two parts, an identifier and instructions, separated by a semicolon.
 > The identifier is always required. The instructions are always optional.
 > E.g., "/update James's Background; include what he shared about his childhood"
@@ -2701,8 +2706,18 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     lines.splice(motiveIdx, 1);
 
     const name = motive?.match(/^[^:]*/g)[0]?.replaceAll("*", "");
-    const card = nearestCardMatch(name, characterCardFilter, promptSort, false);
-    const cardName = card?.title || `🧠 ${name} - Mind`;
+
+    let card = state.tempMotiveData?.id 
+      ? getCard(null, null, state.tempMotiveData.id)
+      : nearestCardMatch(name, characterCardFilter, promptSort, false);
+
+    if (!card) card = newCard(
+      `🧠 ${name} - Mind`,
+      "Prompt - Mind",
+      "",
+      PROMPT_DESCRIPTION
+    )
+    const cardName = card?.title;
 
     globalThis.text = (`${getBuffer()}${sym} ${motive?.trim().replaceAll("*", "")} ${Settings.getValue("Tool", "Reminder Text") ? `\n📝 This motive has been recorded in: ${cardName}` : ""}\n\n` + lines.join("\n")).replace(/\n{3,}/g, '\n\n'); 
 
@@ -2759,7 +2774,13 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 
     const name = reflection.match(/^[^:]*/g)[0];
     const card = nearestCardMatch(name, characterCardFilter, promptSort, false);
-    const cardName = card?.title || `🧠 ${name} - Mind`;
+    if (!card) card = newCard(
+      `🧠 ${name} - Mind`,
+      "Prompt - Mind",
+      "",
+      PROMPT_DESCRIPTION
+    )
+    const cardName = card?.title;
 
     globalThis.text = (`${getBuffer()}${sym} ${reflection?.trim()} ${Settings.getValue("Tool", "Reminder Text") ? `\n📝 This reflection has been recorded in: ${cardName}` : ""}\n\n` + lines.join("\n")).replace(/\n{3,}/g, '\n\n');
 
@@ -2851,10 +2872,15 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     const typeLine = typeLines[type];
 
     if (card) {
+      let endingBracket = false;
+      if (!isPrompt && card.entry.endsWith("\n}")) {
+        endingBracket = true;
+        card.entry = card.entry.slice(0, -2);
+      };
+
       if (!card.entry.includes(addendumText)) {
         const addendumLog = state[typeLog][card.id] || [];
         addendumLog.push(continueCount() + continueOffset);
-
         
         card.entry = card.entry.replaceAll(`Current ${typeLine}:`, `Prior ${typeLine}:`);
         const cap = Settings.getValue("Tool", toolName + " Cap");
@@ -2871,25 +2897,18 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
             };
           };
           card.entry = lines.filter(l => l !== "!!!").join("\n");
+
         };
         
         const addendumLine = `${isPrompt ? "> " : ""}Current ${typeLine}: ${addendumText}`;
 
         card.entry += `\n${addendumLine}`;
 
+        if (endingBracket) card.entry += "\n}";
+
         state[typeLog][card.id] = addendumLog;
       } 
       return;
-    } else {
-      const newCard = newCard(
-        `🧠 ${name} - Mind`,
-        "Character Mind",
-        `{\n${name} - Mind\nCurrent ${typeLine}: ${addendumText}}`,
-        "This card holds the mental state for a character without a Story Card or Prompt Card.\n",
-        getKeys(name)
-      );
-
-      state[`temp${toolName}Data`].id = newCard.id;
     }
   }
  
@@ -2981,15 +3000,20 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
   }
 
   function finishCardOutput() {
-    const isStoryCard = !Settings.getValue("Tool", "Prompt Cards");
+    const command = Command.getActive();
+
+    let isStoryCard = !Settings.getValue("Tool", "Prompt Cards");
+
+    isStoryCard = command.getOption("p") ? !isStoryCard : isStoryCard;
 
     const data = getCardDataFromText(globalThis.text, isStoryCard);
 
-    const triggers = getKeys(
-      data.title,
-      Settings.getValue("Tool", "Full-Title Triggers")
-    )
-    .trim();
+    const triggers = isStoryCard 
+      ? getKeys(
+        data.title,
+        Settings.getValue("Tool", "Full-Title Triggers")
+      ).trim()
+      : "";
 
     if (isStoryCard) globalThis.text += `\nTriggers: ${triggers}`;
 
