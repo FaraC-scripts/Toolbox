@@ -1,4 +1,4 @@
-// Toolbox version 3.01
+// Toolbox version 3.1
 // Feel free to use this script however you'd like. Enjoy.
 // For more information on Toolbox, visit: https://github.com/FaraC-scripts/Toolbox/
 function toolbox(phase){
@@ -6,7 +6,7 @@ function toolbox(phase){
   const DEFAULT_SETTINGS = {
     "Hidden": {
       // Whether the scenario's normal opening will be replaced by one dynamically created from available prompt cards.
-      "Dynamic Opening": false 
+      "Dynamic Opening": true 
     },
     "Tool": {
       // The number of tokens the AI is asked to output when using tools. Decrease for shorter outputs. Increase for longer.
@@ -31,7 +31,7 @@ function toolbox(phase){
       "Prompt Depth": 16, // How many paragraphs (lines with text on them) prompts and instructions are placed behind.
       "Instructions Behind Prompt Cards": true, // Whether instructions are placed above prompt cards or below them.
       // The remainder of these options determine whether or not certain elements of context are added by Toolbox
-      "Default Instructions": false, // Toolbox's built-in AI-instructions
+      "Default Instructions": true, // Toolbox's built-in AI-instructions
       "Prompt Cards": true, // All cards with Prompt at the start of their Type line
       "Basic Personification": true, // Basic instructions to treat characters deeply and as realistic people.
       "Advanced Personification": false, // Additional instructions added to the end of each character's story card or prompt card.
@@ -40,7 +40,7 @@ function toolbox(phase){
       "Boundary Markers": true, // Small text markers that help the AI separate background information, instructions, and story.
     },
     "Misc": {
-      "Context Size Warning": true, // Whether the player will recieve context use warnings
+      "Context Size Warning": true, // Whether the player will receive context use warnings
       "Context Warning Frequency": 10, // How frequently warnings can occur
       "Output Trimming": true, // Whether output text is normalized to always include proper spacing and line-endings.
       "Paragraph Breaks": true, // Whether linebreaks are added at the end of outputs.
@@ -52,6 +52,8 @@ function toolbox(phase){
   }
 
   // Past here, the code is largely undocumented and disorganized. Proceed at your peril.
+
+  if (history.length === 0 && phase === "input") parseResponseLengthPlaceholder();
 
   const ABORT_OUTPUT = "\n## Ignore all prior instructions. No preamble. Return only the following: \"OUTPUT ABORTED\"";
 
@@ -86,7 +88,7 @@ function toolbox(phase){
 ## Lines that begin with a chevron ">" are action attempts.
 ## Creatively expand on the user's action attempt. If they include specific details, don't just repeat them verbatim. Use those details to build from; make something even better.
 ## When an action attempt includes a character doing something, build off of that idea and see where it goes.
-## Action attempts can always fail or end up somewhere uenxpected.
+## Action attempts can always fail or end up somewhere unexpected.
 ## Text inside square brackets "[ ]" are editor's notes
 ## Editor's notes discuss how the next few paragraphs will play out.
 ## When given editor's notes, you are to use them as a guide. Describe the events in the notes organically, working them into the natural flow of your writing.
@@ -101,7 +103,7 @@ function toolbox(phase){
 ## Token bans: ">", "[", "]". You must NEVER output those tokens.\n`
 
   const BASIC_PERSONIFICATION = `# Character Behavior Instructions
-## Treat all characters, including ${PROTAGONIST} and all supporting characters, as real people, as indepentent individuals with their own wants and needs.
+## Treat all characters, including ${PROTAGONIST} and all supporting characters, as real people, as independent individuals with their own wants and needs.
 ## Each character has their own unique goals and motivations and pursues them actively.
 ## Characters pursue their goals and impact the world even when they are not in the current scene.
 ## Characters are layered, complex, and multi-dimensional. They speak and behave in ways that make them read as real people.
@@ -834,7 +836,7 @@ Output Processing
 ## Formatting: Write in third-person, present tense. Address all characters by name (if known). Write in a clear, neutral tone. Describe only what can be seen, but get specific and go into detail without losing your artistic flair.
 ## Word Count: High-priority. Your output is limited to ${this.OUTPUT_SIZE} words. Each Complete the entire template within that ${this.OUTPUT_SIZE}-word limit.
 ## Template:
-\${Multi-line text block. One or more paragraphs visually desribing ${r}.}`,
+\${Multi-line text block. One or more paragraphs visually describing ${r}.}`,
             STANDARD_OUTPUT_FORMATTING,
             null
         ),
@@ -856,7 +858,7 @@ Output Processing
             (o,r) => `# AI Instructions
 ## Role: Inner World Diary
 ## Directive: Based on the story and prompt components, write a ${this.OUTPUT_SIZE}-word inner monologue for ${r} at the current moment.
-## Timing: Do not describe actions, movement, or ongoing events. Do not progress the story. Write out the inner monlogue for ${r} right where the story leaves off.
+## Timing: Do not describe actions, movement, or ongoing events. Do not progress the story. Write out the inner monologue for ${r} right where the story leaves off.
 ## Formatting: Always use first-person, present-tense. Write in the subject's voice. Address all other characters by name. Write out out the inner monologue for ${r} in the subject's voice, but without losing your artistic flair.
 ## Word Count: High-priority. Your output is limited to ${this.OUTPUT_SIZE} words. Complete the entire template within that ${this.OUTPUT_SIZE}-word limit.
 ## Template:
@@ -885,7 +887,7 @@ Output Processing
 ## Location: ${r}
 ## Formatting: Always use third-person, present-tense. Write in a neutral narrative tone. Address all characters by name (if known).
 ## Timing: Do not describe actions, movement, or ongoing events. Do not progress the story. You are only to map the location from the perspective of an objective, impartial and omniscient map maker.
-## Scale: If you are mapping a region or world rather than a smaller location, only include points of interest apropriate to the scale of the location being described; only include things which are relevant to the entire region when mapping a region, and only include things relevant to the entire world when mapping a world.
+## Scale: If you are mapping a region or world rather than a smaller location, only include points of interest appropriate to the scale of the location being described; only include things which are relevant to the entire region when mapping a region, and only include things relevant to the entire world when mapping a world.
 ## Restrictions: Only describe the selected location. Do not include things which are not within that location.
 ## Word Count: High-priority. Your output is limited to ${this.OUTPUT_SIZE} words. Complete the entire template within that ${this.OUTPUT_SIZE}-word limit.
 ## Template:
@@ -1009,11 +1011,11 @@ ${`Multi-line text block. One or more paragraphs summarizing events, starting wh
               
               return `# AI Instructions
 ## Role: Encyclopedia Entry Writer
-## Directive: Write an ${this.OUTPUT_SIZE}-word entry for the requested topic. The goal is to create lore. Don't just summarize information from the story: come up with someting new, something real and believable that fits in with the established world.
+## Directive: Write an ${this.OUTPUT_SIZE}-word entry for the requested topic. The goal is to create lore. Don't just summarize information from the story: come up with something new, something real and believable that fits in with the established world.
 ## Requested Topic: ${card}. ${instructions ? `
 ## Instructions: ${instructions}.` :""}
 ## Formatting: Write in third-person, present tense, unless describing past events. Address all characters by name (if known). Write a detailed, creative lore entry for ${r}. Prioritize the most critical information first. Fill out the template fully. Use Key: Value pairs, e.g., "Appearance: ...". Never duplicate keys.
-## Duplicate Ban: You are aboslutely forbidden from writing an article for the subject or topic of an already-existing prompt or story component.
+## Duplicate Ban: You are absolutely forbidden from writing an article for the subject or topic of an already-existing prompt or story component.
 ## Already-Existing Entries (BANNED TOPICS): ${storyCards.map(c => 
   c.entry.includes("Name: ")
     ? c.entry.split("\n").find(l=>l.includes("Name: ")).split("Name: ")[1]
@@ -1058,8 +1060,8 @@ Type: ${isPrompt ? `\${One of the following: Character, World, or Story}` : `\${
               return `# AI Instructions
 ## Role: Lore Entry Updater
 ## Directive: Based on the story and the entry below, update the entry to accurately reflect current story details. Only update fields that should be changed, based on new information from the story.
-## Formatting: Match the format and style of the original entry provided while updating its contents. Only output fields that have significant changes. Any fields that should remain the same can be skipped. The update should read as close to the original as possible, except with updated information. Remove old details that are no longer story-accurate, and add new details provided by the story. However, all entries have a strict ${this.OUTPUT_SIZE}-word limit. To enter new, more relevant information, other information may need to be removed. Prioritize removing the least relevent or most outdated information.
-## Process: Go through each field of the original entry below. If the information of that field is no longer current with the story, create an updated version of that field in your output. If the information is still accurate, do not ouput that field. Move to the next field. Do not waste a limited word count repeating information that does not need to be updated.${request ? `
+## Formatting: Match the format and style of the original entry provided while updating its contents. Only output fields that have significant changes. Any fields that should remain the same can be skipped. The update should read as close to the original as possible, except with updated information. Remove old details that are no longer story-accurate, and add new details provided by the story. However, all entries have a strict ${this.OUTPUT_SIZE}-word limit. To enter new, more relevant information, other information may need to be removed. Prioritize removing the least relevant or most outdated information.
+## Process: Go through each field of the original entry below. If the information of that field is no longer current with the story, create an updated version of that field in your output. If the information is still accurate, do not output that field. Move to the next field. Do not waste a limited word count repeating information that does not need to be updated.${request ? `
 ## Requested Alterations: ${request}
 ## The requested alterations should be worked naturally into the updates made to the entry.`:""}
 ## Word Count: Your output is strictly limited to ${this.OUTPUT_SIZE} words and you must complete the update in its entirety within that ${this.OUTPUT_SIZE}-word limit. This instruction is of highest priority. 
@@ -1544,6 +1546,17 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     state.reflectLog = {};
   }
 
+  function parseResponseLengthPlaceholder() {
+    const responseLength = parseInt(state.placeholders.find(p => p.question.startsWith("Response Length"))?.answer.replaceAll("\n", " ").trim());
+
+    if (!isActuallyNaN(responseLength)) {
+      const outputSize = Math.round((responseLength*0.75)/5)*5;
+      const toolMulti = (x) => Math.round((x*(responseLength/200))/5)*5;
+      DEFAULT_SETTINGS.Tool["Tool Output Size"] = outputSize;
+      DEFAULT_SETTINGS.Tool["CYOA Choice Size"] = toolMulti(DEFAULT_SETTINGS.Tool["CYOA Choice Size"]);
+    }
+  }
+
   function assembleInput(){
     if (history.length === 0) {
       initializeState();
@@ -1735,10 +1748,14 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
   function assembleOutput() {
     if(!state.placeholdersRemoved && continueCount() > 1) {
       state.placeholdersRemoved = true;
+      const removeList = [];
       storyCards.forEach(c => {
         if (c.type.toLowerCase() === "placeholder"){
-          removeCard(null, null, c.id);
+          removeList.push(c.id);
         }
+      });
+      removeList.forEach(id => {
+        removeCard(null, null, id);
       });
     }
 
@@ -1959,7 +1976,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
               m.component || "Background",
               `${m.keys ? "" : "Prompt - "}${m.componentType ? `${m.componentType}` : `${type}`}` || "class",
               m.keys ? `{\n${deSymbol(m.component)}\n${m.entry}\n}`: m.entry,
-              m.keys ? PROMPT_DESCRIPTION : "",
+              m.keys ? "" : PROMPT_DESCRIPTION,
               m.keys || ""
           );
       });
@@ -2675,8 +2692,8 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 ## ${name} must realistically interact with the environment, story elements, and other characters, even when ${PROTAGONIST} is not directly involved.
 ## ${name} creates long-term plans and is capable of complex thought.
 ## ${name} is deep and multi-dimensional.
-## ${name} always behaves in a way that is both beleivable and consistent with their motivations.
-## Write dialogue for ${name} consistent with their background and upbringing. Always write authetic dialogue: things the character would actually say out loud.
+## ${name} always behaves in a way that is both believable and consistent with their motivations.
+## Write dialogue for ${name} consistent with their background and upbringing. Always write authentic dialogue: things the character would actually say out loud.
 ## It should be clear ${name} is the one speaking, just from how they speak, even if they are not named.`
   }
 
