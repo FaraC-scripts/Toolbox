@@ -1,3 +1,18 @@
+Toolbox Update 3.1
+
+Response Length Placeholder
+- You can now set your default Tool Output Size and CYOA Choice Size at the start of an adventure by using a placeholder
+- The placeholder must start with "Response Length", e.g., ${Response Length: Enter your Response Length (100-400)}
+- The value entered must be a number. Leaving it blank or entering anything else defaults to 200
+- Tool Output Size is set to 75% of Response Length, and CYOA Choice Size is set to 12.5% of Response Length
+
+Bug Fixes
+- Fixed various typos
+- Fixed issue with certain placeholder cards not being removed
+- Fixed issue where prompt cards and story cards created from prompts had the wrong descriptions
+
+---
+
 Toolbox Update 3.01
 
 Card
