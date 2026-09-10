@@ -1,5 +1,7 @@
 # 🧰 Toolbox 🧰
 
+<img src=https://github.com/FaraC-scripts/Toolbox/blob/main/Toolbox%20Title%20Image.png />
+
 __Toolbox__ is a context management system and robust set of scripted tools for AI Dungeon scenarios. 
 
 This document covers both playing with Toolbox and installing it into your own scenarios.
