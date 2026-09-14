@@ -1,3 +1,14 @@
+Toolbox Update 3.2
+⚡ Speed Tool
+- /speed tool added, which lets you set the narration speed to 0.1x, 0.25x, 0.5x, 1x, 2x, 4x, or 10x, e.g., /speed 4
+- Using the command without a numerical request cycles through speeds
+- Using the command once creates persistent instructions (even at 1x speed). These can be removed with /speed reset
+
+Bug Fixes
+- Cleaned up how Motive and Reflect select characters / cards to modify
+- Various minor bug fixes
+
+
 Toolbox Update 3.1
 
 Response Length Placeholder
