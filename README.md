@@ -521,6 +521,31 @@ __Default Request:__ none
 __Examples__
 > /r
 
+### ⚡ Speed ⚡
+
+Change the pace of narration (0.1x, 0.25x, 0.5x, 1x, 2x, 4x, 10x)
+
+Using the command without a numerical request cycles through speeds, starting at 2x
+
+Using the command once creates persistent instructions (even at 1x speed). These instructions are placed at the very bottom of context. The instructions can be removed with _/speed reset_
+
+__Slash Commands:__ /speed or /z
+
+__Output Visibility:__ N/A
+
+__Request Type:__ a number, the narration speed desired
+
+__Default Request:__ 2, if no speed has been set previously; otherwise, it increments the speed, to 4x, then 10x, then back to 0.1x, etc.
+
+__Examples__
+> /z
+>
+> /z 0.25
+>
+> /z 4
+> 
+> /z reset
+
 <h2 id="Context-Management"><strong>🗂️ Context Management 🗂️</strong></h2>
 
 Toolbox adds a number of elements to the context sent to the AI every action. Each element can be turned on or off in the __Context Settings__ story card. The number of tokens they use are also listed there, as well as in _/help_
