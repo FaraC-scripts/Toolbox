@@ -6,7 +6,7 @@ function toolbox(phase){
   const DEFAULT_SETTINGS = {
     "Hidden": {
       // Whether the scenario's normal opening will be replaced by one dynamically created from available prompt cards.
-      "Dynamic Opening": true 
+      "Dynamic Opening": false
     },
     "Tool": {
       // The number of tokens the AI is asked to output when using tools. Decrease for shorter outputs. Increase for longer.
@@ -31,7 +31,7 @@ function toolbox(phase){
       "Prompt Depth": 16, // How many paragraphs (lines with text on them) prompts and instructions are placed behind.
       "Instructions Behind Prompt Cards": true, // Whether instructions are placed above prompt cards or below them.
       // The remainder of these options determine whether or not certain elements of context are added by Toolbox
-      "Default Instructions": true, // Toolbox's built-in AI-instructions
+      "Default Instructions": false, // Toolbox's built-in AI-instructions
       "Prompt Cards": true, // All cards with Prompt at the start of their Type line
       "Basic Personification": true, // Basic instructions to treat characters deeply and as realistic people.
       "Advanced Personification": false, // Additional instructions added to the end of each character's story card or prompt card.
@@ -144,6 +144,22 @@ function toolbox(phase){
   const NO_OUTPUT_FORMATTING = (text) => {
     return text;
   }
+
+  const BEFORE_COLON_REGEX = /^[^:]*/g;
+
+  const AFTER_COLON_REGEX = /(?<=:).*$/;
+
+  const SPEEDS = [0.1, 0.25, 0.5, 1, 2, 4, 10];
+
+  const SPEED_TEXT = [
+    "## Progress the narration at 0.1x speed, a tenth of the normal pace.\n## Linger on descriptions, stretching each out as long as possible.\n## Take your time to discuss every detail of the scene before moving even slightly forward.\n## The story should barely move forward, if at all.",
+    "## Progress the narration at 0.25x speed, a quarter of the normal pace.\n## Linger on descriptions, paying extra attention to anything of any interest.\n## The story should move forward at a steady, but very slow rate.",
+    "## Progress the narration at 0.5x speed, half the normal pace.\n## Spend extra time on descriptions, noting anything of interest.\n## The story should move forward at a slow but steady rate.",
+    "## Progress the narration at a normal pace.\n## Take your time on descriptions when they're important.\n## Move the story forward at a steady clip.",
+    "## Progress the narration at 2x speed, double the normal pace.\n## Spend minimal time on descriptions and dialogue, noting only the most important details.\n## Make sure to move the story forward at an accelerated rate.",
+    "## Progress the narration at 4x speed, quadruple the normal pace.\n## Spend little to no time on descriptions or dialogue, noting only plot-critical details.\n## Make sure to move the story forward at a rapidly accelerated rate.",
+    "## Progress the narration at 10x speed, ten times the normal pace.\n## Don't bother with dialogue or descriptions, giving only the bare minimum needed.\n## Make sure to rush the story forward at a break-neck pace, going straight from plot point to plot point without slowing down.",
+  ]
 
   // a helper class for Settings
   class Setting {
@@ -522,12 +538,12 @@ Output Processing
       lines.forEach(l => {
         this.FILTERS.forEach(f => l = l.replace(f, ""));
         
-        const settingName =  l.match(/^[^:]*/g)[0]?.trim();
+        const settingName =  l.match(BEFORE_COLON_REGEX)[0]?.trim();
 
         const setting= settings.settingArray.find(p => p.name === settingName);
 
         if (setting){
-          const stringValue = l.match(/(?<=:).*$/)[0]?.split(" - ")[0].trim();
+          const stringValue = l.match(AFTER_COLON_REGEX)[0]?.split(" - ")[0].trim();
           if (!isActuallyNaN(parseInt(stringValue))) {
             setting.value = parseInt(stringValue);
           } else if (stringValue.toLowerCase() === "true") {
@@ -1101,19 +1117,23 @@ ${trimEntry(card.entry)[0]}
               const motiveSize = Settings.getValue('Tool', 'Motive Size');
               const parts = r.split(";")
               const name = parts[0].trim();
+              const card = nearestCardMatch(name, ownerlessFilter, mindSort, false);
+              const [cardName] = partsFromTitle(deSymbol(card?.title));
               const request = parts.slice(1).join(";").trim();
               return `\n# Motive Creation Instructions
-## Write a short motive blurb for ${name} where they express what they want to get out of the current scene.
+## Write a short motive blurb for ${cardName || name} where they express what they want to get out of the current scene.
 ## Motives help give depth to the character, and must be realistic and true to the character above all else.
 ## Motives are one line, at most ${motiveSize} words.
 ## Write in the subject's voice, in first-person. Conversational speech.
 ## Motives must be candid, and they can be crude, selfish, or bigoted.
-## A motive should start with terms such as "I want," "I need," "I wonder," "I can't," "I don't."
-## Afterwards, continue writing the story, picking up exactly where it left off. ${request ? `
+## Motives must start with the name of the character, followed by a colon, then the motive blurb.
+## The motive blurb should include terms such as "I want," "I need," "I wonder," "I can't," or "I don't."
+## Afterwards, continue writing the story, picking up exactly where it left off.
+## Reflection Subject: ${cardName || name}${request ? `
 ## Motive Request: ${request}
 ## The motive request should be worked naturally into the motive blurb.` :""}
 ## Template:
-\${Name. The name of the character}: \${Motive blurb. At most ${motiveSize} words.}
+\${${cardName || name}'s name. Just the name.}: \${Motive blurb. At most ${motiveSize} words.}
 \${Story continuation. Continue the story exactly as it left off, in the same perspective and tense as the rest of the story.}`
             },
             NO_OUTPUT_FORMATTING,
@@ -1146,18 +1166,22 @@ ${trimEntry(card.entry)[0]}
               const reflectSize = Settings.getValue('Tool', 'Reflect Size');
               const parts = r.split(";")
               const name = parts[0].trim();
+              const card = nearestCardMatch(name, ownerlessFilter, mindSort, false);
+              const [cardName] = partsFromTitle(card?.title);
               const request = parts.slice(1).join(";").trim();
               return `\n# Reflection Instructions
-## Write a short reflection for ${name} where they express their inner state: a prevailing thought, a powerful sensation, or an idle consideration.
+## Write a short reflection for ${cardName || name} where they express their inner state: a prevailing thought, a powerful sensation, or an idle consideration.
 ## Reflections help give depth to the character, and must be realistic and true to the character above all else.
 ## Reflections are one line, at most ${reflectSize} words.
 ## Write in the subject's voice, in first-person. Conversational speech.
 ## Reflections must be candid, and they can be crude, selfish, or bigoted.
-## Afterwards, continue writing the story, picking up exactly where it left off.${request ? `
+## Reflections must start with the name of the character, followed by a colon, then the reflection blurb.
+## Afterwards, continue writing the story, picking up exactly where it left off.
+## Reflection Subject: ${cardName || name}${request ? `
 ## Reflection Request: ${request}
 ## The reflection request should be worked naturally into the reflection blurb.` :""}
 ## Template:
-\${Name. The name of the character}: \${Reflection blurb. At most ${reflectSize} words.}
+\${${cardName || name}'s name. Just the name.}: \${Reflection blurb. At most ${reflectSize} words.}
 \${Story continuation. Continue the story exactly as it left off, in the same perspective and tense as the rest of the story.}`
             },
             NO_OUTPUT_FORMATTING,
@@ -1249,6 +1273,32 @@ Gains: \${The benefits gained using ${r} in terms of ${resourceLine}, or "None" 
               },
               {
                 message: Message.fromPool("exit"),
+                phase: "output"
+              }
+            ],
+            (o,r) => "",
+            NO_OUTPUT_FORMATTING
+        ),
+ new Tool(
+            "Speed",
+            '⚡',
+            ["speed", "z"],
+            false,
+            [],
+            `${state.speed 
+              ? state.speed + 1 >= SPEEDS.length 
+                ? SPEEDS[0]
+                : SPEEDS[state.speed + 1]
+              : "2"}`,
+            "Change the pace of narration (0.1x, 0.25x, 0.5x, 1x, 2x, 4x, 10x)",
+            "the narration speed multiplier, e.g., /z 0.25",
+            [          
+              {
+                message: new Message ("setSpeed", "setSpeed"),
+                phase: "context"
+              },
+              {
+                message: new Message ("modifySpeedOutput", "modifySpeedOutput"),
                 phase: "output"
               }
             ],
@@ -1379,7 +1429,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     }
 
     static getScheduled(resetTimer) {
-      const partialCommands = ["Motive", "Reflect"];
+      const partialCommands = ["Motive", "Reflect", "Speed"];
       const card = getCard("Tool Schedule", "Schedule");
       if (!card) return null;
 
@@ -1736,7 +1786,9 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
       finalLines.push("");
       finalLines.push(prompt);
       finalLines.push("");
-    };
+    } else if (!isActuallyNaN(state.speed)) {
+      finalLines.push(`\n# Narration Instructions\n## The following instructions are high-priority.\n## Ignore the pacing of the story up to this point.\n${SPEED_TEXT[state.speed]}\n## Continue the story, starting exactly where it left off`);
+    }
 
     state.hideCards = false;
 
@@ -2004,6 +2056,59 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     return false;
   }
 
+  function setSpeed() {
+    const command = Command.getActive();
+
+    if (command.request === "reset") {
+      state.speed = null;
+      return;
+    }
+
+    const idx = findNearestFloat(SPEEDS, parseFloat(command.request));
+
+    if (idx < 0) {
+      return;
+    }
+
+    state.speed = idx;
+  }
+
+  function modifySpeedOutput() {
+    const command = Command.getActive();
+
+    if (command.request === "reset") {
+      globalThis.text = `${getBuffer()}${command.tool.sym} Narration speed has been reset. The AI will no longer receive narration speed prompting (unless you use /speed again).\n\n` + globalThis.text;
+      return;    
+    }
+
+    const idx = findNearestFloat(SPEEDS, parseFloat(command.request));
+
+    if (idx < 0) {
+      globalThis.text = `${getBuffer()}${command.tool.sym} The request for /speed needs to be a number. Narration speed was not changed.\n\n` + globalThis.text;
+      return;
+    }
+
+    globalThis.text = `${getBuffer()}${command.tool.sym} Narration speed set to ${SPEEDS[idx]}x\n\n` + globalThis.text;   
+  }
+
+  function findNearestFloat(floatArr, float) {
+    if (isActuallyNaN(float)) {
+      return -1;
+    }
+    
+    let nearestIndex = 0;
+    let smallestDiff = Math.abs(floatArr[0] - float);
+    
+    for (let i = 1; i < floatArr.length; i++) {
+      const diff = Math.abs(floatArr[i] - float);
+      if (diff < smallestDiff) {
+        smallestDiff = diff;
+        nearestIndex = i;
+      }
+    }
+    
+    return nearestIndex;
+  }
   function modifyUse(){
     const sym = Tool.getSym("Use");
     let lines = globalThis.text
@@ -2080,9 +2185,9 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
       function modifyResourcesAndInventory(c, isCost) {
         let addedAsResource = false;
-        let number = parseInt(c.match(/(?<=:).*$/)[0]);
+        let number = parseInt(c.match(AFTER_COLON_REGEX)[0]);
 
-        const item = c.match(/^[^:]*/g)[0];
+        const item = c.match(BEFORE_COLON_REGEX)[0];
         if (isActuallyNaN(number)) number = 1;
         if (resources) {
           resources.entry = resources.entry
@@ -2092,7 +2197,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
               const hasItem = lower.includes(item.toLowerCase() + ":");
               const hasPlural = lower.includes(pluralize(item.toLowerCase()) + ":");
               if(hasItem || hasPlural) {
-                const int = parseInt(lower.match(/(?<=:).*$/)[0]?.replace(currencyRegex, '').trim());
+                const int = parseInt(lower.match(AFTER_COLON_REGEX)[0]?.replace(currencyRegex, '').trim());
                 resourcesChanged = true;
                 addedAsResource = true;
                 const isPercent = lower.includes("%");
@@ -2114,8 +2219,8 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
           const isPrompt = isPromptCard(inventory);
           const items = inventory.entry.split("\n").map(l => l.startsWith("> ") ? l.slice(2) : l);
           for(let i = 0; i < items.length; i++) {
-            const int = parseInt(items[i].match(/^[^:]*/g)[0]);
-            const im = items[i].match(/(?<=:).*$/)[0];
+            const int = parseInt(items[i].match(BEFORE_COLON_REGEX)[0]);
+            const im = items[i].match(AFTER_COLON_REGEX)[0];
             if (!isActuallyNaN(int)) {
               if (pluralCompare(item.toLowerCase(), im.toLowerCase())){
                 if (isCost) {
@@ -2267,8 +2372,16 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
   }
 
   function characterCardFilter(card) {
-    if (card.title.split(" - ")[1]?.split("(")[0].trim().toLowerCase() === "character") return true;
+    if (!card) return false;
+    const [, type] = partsFromTitle(deSymbol(card.title))
+    if (type === "character") return true;
     if (card.entry.toLowerCase().includes("gender:") || card.entry.toLowerCase().includes("personality:")) return true;
+    return false;
+  }
+
+  function ownerlessFilter(card) {
+    const [,,,owner] = partsFromTitle(deSymbol(card.title));
+    if (!owner) return true;
     return false;
   }
 
@@ -2348,7 +2461,6 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 ⚙️ Required Model Settings
 > Optimized Context: MUST BE OFF (Gameplay -> Story Generator -> Memory System)
 > Context Length: 4000+  (Gameplay -> Story Generator -> Memory System)
-> Response Length: 200+   (Gameplay -> Story Generator -> Model Settings)
 
 🛠️ Tools
 > Tools are special scripted functions that offer a wide range of utility
@@ -2673,7 +2785,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
       if (
         c.type.toLowerCase() === "prompt - character"
       ){
-        names.add(c.entry.split("\n").find(l => l.includes("Name:"))?.match(/(?<=:).*$/)[0]?.trim() || deSymbol(c.title.split(" - ")[0]) || "");
+        names.add(c.entry.split("\n").find(l => l.includes("Name:"))?.match(AFTER_COLON_REGEX)[0]?.trim() || deSymbol(c.title.split(" - ")[0]) || "");
       }
     });
 
@@ -2710,6 +2822,22 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
         : 0
   }
 
+  function mindSort(cardA, cardB) {
+    const isMind = (card) => partsFromTitle(card)[1]?.toLowerCase() === "mind";
+
+    const getPriority = (card) => {
+      if (characterCardFilter(card)) return 0;
+      if (isMind(card)) return 1;
+      if (isPromptCard(card)) return 2;
+      return 3;
+    };
+
+    const priorityA = getPriority(cardA);
+    const priorityB = getPriority(cardB);
+
+    return priorityA - priorityB;
+  }
+
   function decorateMotive(){
     const sym = Tool.getSym("Motive");
 
@@ -2722,11 +2850,11 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 
     lines.splice(motiveIdx, 1);
 
-    const name = motive?.match(/^[^:]*/g)[0]?.replaceAll("*", "");
+    const name = motive?.match(BEFORE_COLON_REGEX)[0]?.replaceAll("*", "");
 
     let card = state.tempMotiveData?.id 
       ? getCard(null, null, state.tempMotiveData.id)
-      : nearestCardMatch(name, characterCardFilter, promptSort, false);
+      : nearestCardMatch(name, ownerlessFilter, mindSort, false);
 
     if (!card) card = newCard(
       `🧠 ${name} - Mind`,
@@ -2766,9 +2894,9 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     const lines = text.split("\n");
 
     const motive = lines.find(l => l.trim().startsWith(sym))
-    const motiveText = motive.match(/(?<=:).*$/)[0]?.trim();
+    const motiveText = motive.match(AFTER_COLON_REGEX)[0]?.trim();
 
-    const tempMotiveText = state.tempMotiveData.motive.match(/(?<=:).*$/)[0]?.trim();
+    const tempMotiveText = state.tempMotiveData.motive.match(AFTER_COLON_REGEX)[0]?.trim();
 
     if (motiveText === tempMotiveText) return;
 
@@ -2789,8 +2917,8 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 
     lines.splice(reflectionIdx, 1);
 
-    const name = reflection.match(/^[^:]*/g)[0];
-    const card = nearestCardMatch(name, characterCardFilter, promptSort, false);
+    const name = reflection.match(BEFORE_COLON_REGEX)[0];
+    let card = nearestCardMatch(name, ownerlessFilter, mindSort, false);
     if (!card) card = newCard(
       `🧠 ${name} - Mind`,
       "Prompt - Mind",
@@ -2828,9 +2956,9 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 
     const lines = text.split("\n");
 
-    const reflectionText = lines.find(l => l.trim().startsWith(sym)).match(/(?<=:).*$/)[0]?.trim();
+    const reflectionText = lines.find(l => l.trim().startsWith(sym)).match(AFTER_COLON_REGEX)[0]?.trim();
 
-    const tempReflectionText = state.tempReflectData.reflection.match(/(?<=:).*$/)[0]?.trim();
+    const tempReflectionText = state.tempReflectData.reflection.match(AFTER_COLON_REGEX)[0]?.trim();
 
     if (reflectionText === tempReflectionText) return;
 
@@ -2855,7 +2983,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     const lines = card.entry.split("\n");
 
     for(let i = lines.length - 1; i >= 0; i--){
-      if(lines[i].match(/^[^:]*/g)[0].toLowerCase().trim().endsWith(typeLine)){
+      if(lines[i].match(BEFORE_COLON_REGEX)[0].toLowerCase().trim().endsWith(typeLine)){
         lines.splice(i, 1);
         break;
       }
@@ -2954,7 +3082,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
         if (x + fade < count) {
           const lines = card.entry.split("\n");
           const typeLine = typeLines[type];
-          const idx = lines.findIndex(l => l.match(/^[^:]*/g)[0]?.endsWith(typeLine));
+          const idx = lines.findIndex(l => l.match(BEFORE_COLON_REGEX)[0]?.endsWith(typeLine));
           if(idx >= 0)
             card.entry = [...lines.slice(0, idx), ...lines.slice(idx + 1)].join("\n");
           addendumLog.unshift();
@@ -3075,7 +3203,7 @@ ${globalThis.text}`;
 
     const lines = text.split("\n");
 
-    const isStoryCard = lines.find(l => l.trim().startsWith(Tool.getSym("card")))?.match(/(?<=:).*$/)[0]?.trim().toLowerCase() === "s";
+    const isStoryCard = lines.find(l => l.trim().startsWith(Tool.getSym("card")))?.match(AFTER_COLON_REGEX)[0]?.trim().toLowerCase() === "s";
 
     const data = getCardDataFromText(text, isStoryCard);
 
@@ -3129,7 +3257,7 @@ ${globalThis.text}`;
         && ![...BASIC_FILTERS, Tool.getSym("Update")].some(f=>l.trim().startsWith(f))
       ))
 
-    const title = lines.find(l => l.trim().startsWith("Title:")).match(/(?<=:).*$/)[0].trim();
+    const title = lines.find(l => l.trim().startsWith("Title:")).match(AFTER_COLON_REGEX)[0].trim();
 
     lines = lines.filter(l => !l.trim().startsWith("Title:"));
     
@@ -3138,7 +3266,7 @@ ${globalThis.text}`;
     const entryLines = concatLines(entry.split("\n"));
     lines.forEach((l, i) => {
       if (!l.slice(0,40).includes(":")) return;
-      const start = l.match(/^[^:]*/g)[0];
+      const start = l.match(BEFORE_COLON_REGEX)[0];
       const idx = entryLines.findIndex(m => m?.trim().startsWith(start + ":"));
       if (idx < 0) {
         entryLines.push(l);
@@ -3230,7 +3358,7 @@ ${text}`;
       command = Command.fromHistory(2);
     };
     
-    const restore = text.split("\n").find(l => l.trim().startsWith(Tool.getSym("update")))?.match(/(?<=:).*$/)[0]?.trim().toLowerCase() === "r";
+    const restore = text.split("\n").find(l => l.trim().startsWith(Tool.getSym("update")))?.match(AFTER_COLON_REGEX)[0]?.trim().toLowerCase() === "r";
     
     restoreTempCard();
     if (!restore) {
@@ -3431,7 +3559,7 @@ ${storyCards
         const name = c.entry
           .split("\n")
           .find(l=>l.includes("Name:"))
-          ?.match(/(?<=:).*$/)[0]
+          ?.match(AFTER_COLON_REGEX)[0]
           ?.trim()
           || deSymbol(c.title
             .split(" - ")[0])
@@ -3445,7 +3573,7 @@ ${storyCards
         .filter(l => {
           if (!isKeyValue(l)) return false;
           
-          const firstPart = l.match(/^[^:]*/g)[0];
+          const firstPart = l.match(BEFORE_COLON_REGEX)[0];
           if (hideOpening && firstPart.toLowerCase() === "opening circumstances") {
             return false;
           }
@@ -3551,7 +3679,7 @@ ${storyCards
         ) {
           if (
             lines.find(l => l.startsWith(VISIBILITY_SYM))
-              .match(/(?<=:).*$/)[0]
+              .match(AFTER_COLON_REGEX)[0]
               ?.toLowerCase()
               .trim()
               .startsWith("y")
