@@ -16,7 +16,7 @@ __📕 User Guide 📕__
 - [🗂️ Context Management](#Context-Management)
 - [🧩 Smart Context](#Smart-Context)
 - [⚙️ Toolbox Settings](#Toolbox-Settings)
-- [📋️ Prompt Sequence](#Prompt-Sequence)
+- [📋️ Prompt Load Order](#Prompt-Sequence)
 - [📅 Tool Scheduling and Automation](#Tool-Scheduling-and-Automation)
 
 __📥 Installation Guide 📥__
@@ -252,7 +252,7 @@ This command uses a __compound request__. The first part of the request must be 
 
 > /card Aureth Leafshadow; include a section on her legendary bow
 
-By default, Card creates a __prompt card__. Prompt cards don't use triggers, and by default always appear in context behind a certain number of paragraphs. They are configurable in __Context Settings__ and __Prompt Sequence__.
+By default, Card creates a __prompt card__. Prompt cards don't use triggers, and by default always appear in context behind a certain number of paragraphs. They are configurable in __Context Settings__ and __Prompt Load Order__.
 
 In the card tool's output, just below the visibility line, there will be this:
 
@@ -608,7 +608,7 @@ __Card__
 - Default to Prompt Cards (Default: true): If true, prompt cards without triggers are created.
   - If false, traditional story cards with triggers are created.
   - Prompt cards always appear in context by default
-  - Prompts are configurable in Context Settings and Prompt Sequence
+  - Prompts are configurable in Context Settings and Prompt Load Order
 - Use Full-Title Triggers (Default: true): If true, the entire card title will be used as its trigger.
   - If false, each word in the card title except for small words like "and" will be used as separate triggers.
   - Only matters if creating a traditional story card, not a prompt card
@@ -658,7 +658,7 @@ __Warnings__
   - Tokens in Context includes the following elements, in the order they get trimmed:
   - Older Story, Story Cards, Plot Essentials, Instructions, Prompt Cards, Recent Story
   - To save some context, you can disable components in the Context Settings story card.
-  - Prompt cards can be individually disabled in the Prompt Sequence story card.
+  - Prompt cards can be individually disabled in the Prompt Load Order story card.
 - Set Context Warning Frequency (Default: 10): The number of outputs before another context size warning can be shown.
   - Context warnings after the first are presented in a more compact format.
 
@@ -669,9 +669,9 @@ __Output Processing__
 - Set Paragraph Break Length (Default: 3): The number of sentences required for an automatic line break.
   - This setting only functions if Add Paragraph Breaks is set to true
 
-<h2 id="Prompt-Sequence"><strong>📋️ Prompt Sequence 📋️</strong></h2>
+<h2 id="Prompt-Sequence"><strong>📋️ Prompt Load Order 📋️</strong></h2>
 
-Your __Prompt Sequence__ can be found and edited in your Story Cards, in the __Settings__ category.
+Your __Prompt Load Order__ can be found and edited in your Story Cards, in the __Settings__ category.
 
 It will look something like this:
 
