@@ -1,3 +1,22 @@
+Toolbox Update 3.3
+🧩 Smart Context - Cards
+- AI Card Management lets the AI select which prompt cards are in context after each output by creating Load and Unload statements in its outputs.
+- Only Prompt story cards of specific types are managed by the AI
+- Managed types: World, Region, Location, Faction, Species, Character, Event, Lore, Quest, Item, Recipe
+- There is a one-turn delay to information visibility. If the AI requests a card, it will only see that card on its next output, after that request has been processed.
+
+🧩 Smart Context - Summaries
+- Improved Story Summarization creates summary cards from the oldest parts of the story when they overflow context.
+- Portions of the story that have been summarized are hidden from the AI and replaced with their summaries in order to save space in context.
+- Summaries use a full output from your current AI model, and only happen on "continue" actions when you are over your context limit.
+- Improved Story Summarization works best for context sizes of 6000+, and should NOT be used alongside AI Dungeon's native Auto Summarization feature. 
+
+Bug Fixes
+- Fixed issue where Direct text was sometimes hidden from the AI before its fade distance.
+- Fixed Reflect and Motive creating duplicates on retry
+- Fixed Reflect and Motive blurbs not properly updating when edited
+- Fixed reflections fading immediately, rather than at their configured distance
+
 Toolbox Update 3.2
 ⚡ Speed Tool
 - /speed tool added, which lets you set the narration speed to 0.1x, 0.25x, 0.5x, 1x, 2x, 4x, or 10x, e.g., /speed 4
