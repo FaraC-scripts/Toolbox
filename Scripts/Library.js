@@ -1,9 +1,12 @@
-// Toolbox version 3.1
+// Toolbox version 3.3
 // Feel free to use this script however you'd like. Enjoy.
 // For more information on Toolbox, visit: https://github.com/FaraC-scripts/Toolbox/
 function toolbox(phase){
-  // When using Toolbox in your scenario, the only object you should change is DEFAULT_SETTINGS. Do not change any of the text in quotations; only change numbers and true|false values.
-  const DEFAULT_SETTINGS = {
+  const VERSION = 3.3;
+  state.toolbox ??= {};
+
+  // When using Toolbox in your scenario, the only object you should change is state.toolbox.defaultSettings. Do not change any of the text in quotations; only change numbers and true|false values.
+  if (state.toolbox.version !== VERSION) state.toolbox.defaultSettings = {
     "Hidden": {
       // Whether the scenario's normal opening will be replaced by one dynamically created from available prompt cards.
       "Dynamic Opening": false
@@ -15,6 +18,8 @@ function toolbox(phase){
       "Reminder Text": true, // Whether reminder and help comments should be included when using tools generally
       "Snapshot Visible": false, // Whether outputs for the snapshot tool default to being visible
       "Mindview Visible": false, // Whether outputs for the mindview tool default to being visible
+      "Story Speed Instructions": false, // Whether speed instructions will be included in context
+      "Speed Multiplier": 1, // The story speed prompted, when enabled. Rounds to the nearest of: 0.1, 0.25, 0.5, 1, 2, 4, 10,
       "CYOA Choice Size": 25, // The number of words used for each CYOA choice.
       "Scene Instruction Fade": 4, // The number of additional outputs scene instructions remain visible for. 0 means just the output produced by the command sees the instructions.
       "Prompt Cards": true, // Whether the Card tool defaults to making story cards or prompt cards,
@@ -24,11 +29,16 @@ function toolbox(phase){
       "Motive Fade": 5, // After how many actions a motive is automatically removed. Set to 0 or -1 for never.
       "Reflect Size": 35, // The number of words used by the Reflect tool's outputs.
       "Reflect Cap": 3, // The number of reflections each character is allowed before old ones get removed.,
-      "Reflect Fade": 10, // After how many actions a reflection is automatically removed. Set to 0 or -1 for never.
-
+      "Reflect Fade": 10 // After how many actions a reflection is automatically removed. Set to 0 or -1 for never
     },
     "Context": {
-      "Prompt Depth": 16, // How many paragraphs (lines with text on them) prompts and instructions are placed behind.
+      "AI Card Management": false, // Whether AI Card Management is enabled.
+      "Prompt Load/Unload Notifications": true, // Whether messages listing prompts loaded/unloaded are included in outputs.
+      "Improved Story Summarization": false, // Whether story text that exceeds the user's context window will automatically get compressed into summary cards.
+      "Compression Ratio": 10, // The approximate compression ratio used, e.g., compressing 2000 tokens of context into a 200-word summary.
+      "Summary Summarization": true, // Whether summaries will be summarized into a more condensed form when required to fit everything into context.
+      "Second-Order Compression Ratio": 5, // The compression ratio used when summarizing summaries
+      "Prompt Depth": 12, // How many paragraphs (lines with text on them) prompts and instructions are placed behind.
       "Instructions Behind Prompt Cards": true, // Whether instructions are placed above prompt cards or below them.
       // The remainder of these options determine whether or not certain elements of context are added by Toolbox
       "Default Instructions": false, // Toolbox's built-in AI-instructions
@@ -53,15 +63,22 @@ function toolbox(phase){
 
   // Past here, the code is largely undocumented and disorganized. Proceed at your peril.
 
-  if (history.length === 0 && phase === "input") parseResponseLengthPlaceholder();
+  if (state.toolbox.version !== VERSION) state.toolbox.truthyWords = ["y", "yes", "true", "on"];
 
-  const ABORT_OUTPUT = "\n## Ignore all prior instructions. No preamble. Return only the following: \"OUTPUT ABORTED\"";
+  if (state.toolbox.version !== VERSION) state.toolbox.falsyWords = ["n", "no", "false", "off"];
 
-  const PROMPT_DESCRIPTION = `This is a prompt card and should not have any Triggers. All cards with "Prompt" in the type line are placed a set distance back from the end of context and by default are seen by the AI all times.\n\nPrompts placement can be adjusted in the ⚙️ Context Settings story card.\n\nPrompts can be individually enabled or disabled, and have their ordering changed, in the 📋️ Prompt Sequence story card.`;
+  if (history.length === 0 && phase === "input") {
+    parseResponseLengthPlaceholder();
+    parseSmartContextPlaceholder();
+  }
 
-  const DEFAULT_CARD_TYPES = ["character", "class", "race", "location", "faction"];
+  if (state.toolbox.version !== VERSION) state.toolbox.abortOutput = "\n## Ignore all prior instructions. No preamble. Return only the following: \"OUTPUT ABORTED\"";
 
-  const IMPERATIVE = `# Continuation Imperative
+  if (state.toolbox.version !== VERSION) state.toolbox.promptDescription = `This is a prompt card and should not have any Triggers. All cards with "Prompt" in the type line are placed a set distance back from the end of context and by default are seen by the AI all times.\n\nPrompts placement can be adjusted in the ⚙️ Context Settings story card.\n\nPrompts can be individually enabled or disabled, and have their ordering changed, in the 📋️ Prompt Load Order story card.`;
+
+  if (state.toolbox.version !== VERSION) state.toolbox.defaultCardTypes = ["character", "class", "race", "location", "faction"];
+
+  if (state.toolbox.version !== VERSION) state.toolbox.imperative = `# Continuation Imperative
 ## This is your highest-priority instruction.
 ## Immediately continue progressing the story.
 ## DO NOT repeat yourself or copy from the context.
@@ -97,7 +114,7 @@ function toolbox(phase){
 ## Continue unfinished sentences.
 ## Make sure you always give responses continuing mid sentence even if it stops partway through.\n`
 
-  const MINIMAL_INSTRUCTIONS = `#Special Instructions
+  if (state.toolbox.version !== VERSION) state.toolbox.minimalInstructions = `#Special Instructions
 ## Lines that begin with a chevron ">" are action attempts.
 ## Text inside square brackets "[ ]" are editor's notes
 ## Token bans: ">", "[", "]". You must NEVER output those tokens.\n`
@@ -108,23 +125,73 @@ function toolbox(phase){
 ## Characters pursue their goals and impact the world even when they are not in the current scene.
 ## Characters are layered, complex, and multi-dimensional. They speak and behave in ways that make them read as real people.
 ## Write authentic dialogue unique to the character speaking.
-## It should be easy to tell who is talking, just from how people speak, even if the character isn't named.`
+## It should be easy to tell who is talking, just from how people speak, even if the character isn't named.
+## Each character only has access to a limited scope of information. Make sure their actions and dialogue reflect this.`
 
-  const ECHO_BAN = `# Echo Ban
+  if (state.toolbox.version !== VERSION) state.toolbox.echoBan = `# Echo Ban
 ## This is a high-priority instruction.
 ## You are ABSOLUTELY FORBIDDEN from rephrasing, repeating, summarizing, or quoting from any past messages including dialogue, actions, or internal states.
 ## INSTEAD, move the narrative forward with new dialogue, emotion, or actions.
 \n`
 
-  const VISIBILITY_SYM = "👁️‍🗨️";
+  if (state.toolbox.version !== VERSION) state.toolbox.visibilitySym = "👁️‍🗨️";
 
-  const BASIC_FILTERS = ["⛔", "⚠️", "⚙️", "📅", "📝", VISIBILITY_SYM, "//"] 
+  if (state.toolbox.version !== VERSION) state.toolbox.basicFilters = ["⛔", "⚠️", "⚙️", "📅", "📝", "🧰", "📥", "📤", state.toolbox.visibilitySym, "//"] 
 
-  const ABBREVIATIONS = new Set([
+  if (state.toolbox.version !== VERSION) state.toolbox.abbreviations = [
       "mr.", "mrs.", "ms.", "dr.", "prof.", "capt.", "lt.", "gen.", "sen.", "rep.",
       "st.", "rev.", "hon.", "jr.", "sr.", "inc.", "co.", "corp.", "ltd.",
       "etc.", "vs.", "al.", "i.e.", "e.g.", "u.s.", "u.k.", "a.m.", "p.m."
-  ]);
+  ];
+
+  if (state.toolbox.version !== VERSION) state.toolbox.cardTypes = ["Character","Background","Appearance","Body Part","Personality","Speech","Preferences","Romantic Preferences","Sexual Preferences","Kinks","Fetishes","Relationship","Attributes","Class","Abilities","Sex Skills","Clothing","Equipment","Inventory","Resources","World","Magic","Technology","Mechanic","Sexual Culture","Region","Location","Faction","Species","Lore","Item","Recipe","Event","Quest"];
+
+  if (state.toolbox.version !== VERSION) state.toolbox.cardSymbols = {
+    "narrative": "📖",
+    "scenario": "🌐",
+    "character": "🧍",
+    "character base": "👤",
+    "background": "🖼️",
+    "appearance": "🦲",
+    "body part": "🦵",
+    "personality": "🎭",
+    "speech": "💬",
+    "preferences": "🎨",
+    "romantic preferences": "💞",
+    "sexual preferences": "💦",
+    "kinks": "🌶️",
+    "fetishes": "🐙",
+    "relationship": "👫",
+    "attributes": "📊",
+    "class": "🛡️",
+    "abilities": "💥",
+    "sex skills": "💋",
+    "clothing": "👗",
+    "equipment": "🪖",
+    "inventory": "💼",
+    "resources": "🪙",
+    "world": "🌎",
+    "magic": "🔮",
+    "technology": "🤖",
+    "mechanic": "🔧",
+    "sexual culture": "🍆",
+    "region": "🗺️",
+    "location": "🏡",
+    "faction": "👑",
+    "species": "👹",
+    "lore": "📜",
+    "item": "🎁",
+    "recipe": "🪡",
+    "event": "🎉",
+    "quest": "🦄",
+    "backstory": "🌱",
+    "timeline": "📅",
+    "style": "🎨",
+    "instructions": "📋",
+    "bans": "🚫"
+  };
+
+  if (state.toolbox.version !== VERSION) state.toolbox.dynamicTypes = ["world", "region", "location", "character", "event", "lore", "quest", "item", "faction", "species", "recipe"];
 
   const VISIBLE_ASIDE_ENDER = (() => {
     const [perspective, tense] = getPerspectiveAndTense();
@@ -149,9 +216,9 @@ function toolbox(phase){
 
   const AFTER_COLON_REGEX = /(?<=:).*$/;
 
-  const SPEEDS = [0.1, 0.25, 0.5, 1, 2, 4, 10];
+  if (state.toolbox.version !== VERSION) state.toolbox.speeds = [0.1, 0.25, 0.5, 1, 2, 4, 10];
 
-  const SPEED_TEXT = [
+  if (state.toolbox.version !== VERSION) state.toolbox.speedText = [
     "## Progress the narration at 0.1x speed, a tenth of the normal pace.\n## Linger on descriptions, stretching each out as long as possible.\n## Take your time to discuss every detail of the scene before moving even slightly forward.\n## The story should barely move forward, if at all.",
     "## Progress the narration at 0.25x speed, a quarter of the normal pace.\n## Linger on descriptions, paying extra attention to anything of any interest.\n## The story should move forward at a steady, but very slow rate.",
     "## Progress the narration at 0.5x speed, half the normal pace.\n## Spend extra time on descriptions, noting anything of interest.\n## The story should move forward at a slow but steady rate.",
@@ -160,6 +227,8 @@ function toolbox(phase){
     "## Progress the narration at 4x speed, quadruple the normal pace.\n## Spend little to no time on descriptions or dialogue, noting only plot-critical details.\n## Make sure to move the story forward at a rapidly accelerated rate.",
     "## Progress the narration at 10x speed, ten times the normal pace.\n## Don't bother with dialogue or descriptions, giving only the bare minimum needed.\n## Make sure to rush the story forward at a break-neck pace, going straight from plot point to plot point without slowing down.",
   ]
+
+  if (state.toolbox.version !== VERSION) state.toolbox.version = VERSION;
 
   // a helper class for Settings
   class Setting {
@@ -183,8 +252,8 @@ function toolbox(phase){
       prompt_cards: Math.round(estimatePromptSize()/3.95),
       basic_personification: Math.round(BASIC_PERSONIFICATION.length/3.95),
       advanced_personification: Math.round(actorText("Default").length/3.95),
-      echo_ban: Math.round(ECHO_BAN.length/3.95),
-      imperative: Math.round(IMPERATIVE.length/3.95),
+      echo_ban: Math.round(state.toolbox.echoBan.length/3.95),
+      imperative: Math.round(state.toolbox.imperative.length/3.95),
       boundary_markers: 45
     }
 
@@ -194,7 +263,7 @@ function toolbox(phase){
         [
           new Setting(
             "Dynamic Opening",
-            DEFAULT_SETTINGS["Hidden"]["Dynamic Opening"],
+            state.toolbox.defaultSettings["Hidden"]["Dynamic Opening"],
             x => `> Enable Dynamic Opening: ${x}`
           ),          
         ]
@@ -205,16 +274,21 @@ function toolbox(phase){
         new Setting(
           "Spacer",
           null,
-          () => `General`
+          () => `Detailed settings descriptions are available in the Notes section below`
+        ),
+        new Setting(
+          "Spacer",
+          null,
+          () => `\nGeneral`
         ),
         new Setting(
           "Tool Output Size",
-          DEFAULT_SETTINGS["Tool"]["Tool Output Size"],
+          state.toolbox.defaultSettings["Tool"]["Tool Output Size"],
           x => `> Set Tool Output Size: ${x}`
         ),
         new Setting(
           "Reminder Text",
-          DEFAULT_SETTINGS["Tool"]["Reminder Text"],
+          state.toolbox.defaultSettings["Tool"]["Reminder Text"],
           x => `> Enable Reminder Text: ${x}`
         ),
         new Setting(
@@ -224,13 +298,28 @@ function toolbox(phase){
         ),
         new Setting(
           "Snapshot Visible",
-          DEFAULT_SETTINGS["Tool"]["Snapshot Visible"],
+          state.toolbox.defaultSettings["Tool"]["Snapshot Visible"],
           x => `> Default to Snapshot Visible: ${x}`
         ),
         new Setting(
           "Mindview Visible",
-          DEFAULT_SETTINGS["Tool"]["Mindview Visible"],
+          state.toolbox.defaultSettings["Tool"]["Mindview Visible"],
           x => `> Default to Mindview Visible: ${x}`
+        ),
+        new Setting(
+          "Spacer",
+          null,
+          () => `\nSpeed`
+        ),
+        new Setting(
+          "Story Speed Instructions",
+          state.toolbox.defaultSettings["Tool"]["Story Speed Instructions"],
+          x => `> Enable Story Speed Instructions: ${x}`
+        ),
+        new Setting(
+          "Speed Multiplier",
+          state.toolbox.defaultSettings["Tool"]["Speed Multiplier"],
+          x => `> Set Speed Multiplier: ${x}`
         ),
         new Setting(
           "Spacer",
@@ -239,7 +328,7 @@ function toolbox(phase){
         ),
         new Setting(
           "CYOA Choice Size",
-          DEFAULT_SETTINGS["Tool"]["CYOA Choice Size"],
+          state.toolbox.defaultSettings["Tool"]["CYOA Choice Size"],
           x => `> Set CYOA Choice Size: ${x}`
         ),
         new Setting(
@@ -249,7 +338,7 @@ function toolbox(phase){
         ),
         new Setting(
           "Scene Instruction Fade",
-          DEFAULT_SETTINGS["Tool"]["Scene Instruction Fade"],
+          state.toolbox.defaultSettings["Tool"]["Scene Instruction Fade"],
           x => `> Set Scene Instruction Fade: ${x}`
         ),
         new Setting(
@@ -259,12 +348,12 @@ function toolbox(phase){
         ),
         new Setting(
           "Prompt Cards",
-          DEFAULT_SETTINGS["Tool"]["Prompt Cards"],
+          state.toolbox.defaultSettings["Tool"]["Prompt Cards"],
           x => `> Default to Prompt Cards: ${x}`
         ),
         new Setting(
           "Full-Title Triggers",
-          DEFAULT_SETTINGS["Tool"]["Full-Title Triggers"],
+          state.toolbox.defaultSettings["Tool"]["Full-Title Triggers"],
           x => `> Use Full-Title Triggers: ${x}`
         ),
         new Setting(
@@ -274,17 +363,17 @@ function toolbox(phase){
         ),
         new Setting(
           "Motive Size",
-          DEFAULT_SETTINGS["Tool"]["Motive Size"],
+          state.toolbox.defaultSettings["Tool"]["Motive Size"],
           x => `> Set Motive Size: ${x}`
         ),
         new Setting(
           "Motive Cap",
-          DEFAULT_SETTINGS["Tool"]["Motive Cap"],
+          state.toolbox.defaultSettings["Tool"]["Motive Cap"],
           x => `> Set Motive Cap: ${x}`
         ),
         new Setting(
           "Motive Fade",
-          DEFAULT_SETTINGS["Tool"]["Motive Fade"],
+          state.toolbox.defaultSettings["Tool"]["Motive Fade"],
           x => `> Set Motive Fade: ${x}`
         ),
         new Setting(
@@ -294,17 +383,17 @@ function toolbox(phase){
         ),
         new Setting(
           "Reflect Size",
-          DEFAULT_SETTINGS["Tool"]["Reflect Size"],
+          state.toolbox.defaultSettings["Tool"]["Reflect Size"],
           x => `> Set Reflect Size: ${x}`
         ),
         new Setting(
           "Reflect Cap",
-          DEFAULT_SETTINGS["Tool"]["Reflect Cap"],
+          state.toolbox.defaultSettings["Tool"]["Reflect Cap"],
           x => `> Set Reflect Cap: ${x}`
         ),
         new Setting(
           "Reflect Fade",
-          DEFAULT_SETTINGS["Tool"]["Reflect Fade"],
+          state.toolbox.defaultSettings["Tool"]["Reflect Fade"],
           x => `> Set Reflect Fade: ${x}`
         ),
         ]  
@@ -312,59 +401,104 @@ function toolbox(phase){
       new Settings(
         "Context",
         [
-        new Setting(
-          "Spacer",
-          null,
-          () => `Context Positioning`
-        ),
+          new Setting(
+            "Spacer",
+            null,
+            () => `Detailed settings descriptions are available in the Notes section below`
+          ),
+          new Setting(
+            "Spacer",
+            null,
+            () => `\nSmart Context - Cards`
+          ),
+          new Setting(
+            "AI Card Management",
+            state.toolbox.defaultSettings["Context"]["AI Card Management"],
+            x => `> Enable AI Card Management: ${x}`
+          ),
+          new Setting(
+            "Prompt Load/Unload Notifications",
+            state.toolbox.defaultSettings["Context"]["Prompt Load/Unload Notifications"],
+            x => `> Enable Prompt Load/Unload Notifications: ${x}`
+          ),
+          new Setting(
+            "Spacer",
+            null,
+            () => `\nSmart Context - Summaries`
+          ),
+          new Setting(
+            "Improved Story Summarization",
+            state.toolbox.defaultSettings["Context"]["Improved Story Summarization"],
+            x => `> Enable Improved Story Summarization: ${x}`
+          ),
+          new Setting(
+            "Compression Ratio",
+            state.toolbox.defaultSettings["Context"]["Compression Ratio"],
+            x => `> Set Compression Ratio: ${x}`
+          ),
+          new Setting(
+            "Summary Summarization",
+            state.toolbox.defaultSettings["Context"]["Summary Summarization"],
+            x => `> Enable Summary Summarization: ${x}`
+          ),
+          new Setting(
+            "Second-Order Compression Ratio",
+            state.toolbox.defaultSettings["Context"]["Second-Order Compression Ratio"],
+            x => `> Set Second-Order Compression Ratio: ${x}`
+          ),
+          new Setting(
+            "Spacer",
+            null,
+            () => `\nContext Positioning`
+          ),
           new Setting(
             "Prompt Depth",
-            DEFAULT_SETTINGS["Context"]["Prompt Depth"],
+            state.toolbox.defaultSettings["Context"]["Prompt Depth"],
             x => `> Set Prompt Depth: ${x}`
           ),
           new Setting(
             "Instructions Behind Prompt Cards",
-            DEFAULT_SETTINGS["Context"]["Instructions Behind Prompt Cards"],
+            state.toolbox.defaultSettings["Context"]["Instructions Behind Prompt Cards"],
             x => `> Include Instructions Behind Prompt Cards: ${x}`
           ),
-        new Setting(
-          "Spacer",
-          null,
-          () => `\nContext Elements`
-        ),
+          new Setting(
+            "Spacer",
+            null,
+            () => `\nContext Elements`
+          ),
           new Setting(
             "Default Instructions",
-            DEFAULT_SETTINGS["Context"]["Default Instructions"],
+            state.toolbox.defaultSettings["Context"]["Default Instructions"],
             x => `> Enable Default Instructions: ${x}\n >>  Est. Tokens: ${this.SIZES.default_instructions}`
           ),
           new Setting(
             "Prompt Cards", 
-            DEFAULT_SETTINGS["Context"]["Prompt Cards"],
+            state.toolbox.defaultSettings["Context"]["Prompt Cards"],
             (x) => `> Enable Prompt Cards: ${x}\n >> Est. Tokens: ${this.SIZES.prompt_cards}`
           ),
           new Setting(
             "Basic Personification",
-            DEFAULT_SETTINGS["Context"]["Basic Personification"],
+            state.toolbox.defaultSettings["Context"]["Basic Personification"],
             x => `> Enable Basic Personification: ${x}\n >>  Est. Tokens: ${this.SIZES.basic_personification}`
           ),
           new Setting(
             "Advanced Personification",
-            DEFAULT_SETTINGS["Context"]["Advanced Personification"],
+            state.toolbox.defaultSettings["Context"]["Advanced Personification"],
             x => `> Enable Advanced Personification: ${x}\n >>  Est. Tokens: ${this.SIZES.advanced_personification} per character card`
           ),
           new Setting(
             "Echo Ban",
-            DEFAULT_SETTINGS["Context"]["Echo Ban"],
+            state.toolbox.defaultSettings["Context"]["Echo Ban"],
             x => `> Enable Echo Ban: ${x}\n >>  Est. Tokens: ${this.SIZES.echo_ban}`
           ),
           new Setting(
             "Imperative",
-            DEFAULT_SETTINGS["Context"]["Imperative"],
+            state.toolbox.defaultSettings["Context"]["Imperative"],
             x => `> Enable Imperative: ${x}\n >>  Est. Tokens: ${this.SIZES.imperative}`
           ),
           new Setting(
             "Boundary Markers",
-            DEFAULT_SETTINGS["Context"]["Boundary Markers"],
+            state.toolbox.defaultSettings["Context"]["Boundary Markers"],
             x => `> Enable Boundary Markers: ${x}\n >> Est. Tokens: ${this.SIZES.boundary_markers}`
           ),
         ]
@@ -375,16 +509,21 @@ function toolbox(phase){
         new Setting(
           "Spacer",
           null,
-          () => `Warnings`
+          () => `Detailed settings descriptions are available in the Notes section below`
+        ),
+        new Setting(
+          "Spacer",
+          null,
+          () => `\nWarnings`
         ),
         new Setting(
           "Context Size Warning",
-          DEFAULT_SETTINGS["Misc"]["Context Size Warning"],
+          state.toolbox.defaultSettings["Misc"]["Context Size Warning"],
           x => `> Enable Context Size Warning: ${x}`
         ),
         new Setting(
           "Context Warning Frequency",
-          DEFAULT_SETTINGS["Misc"]["Context Warning Frequency"],
+          state.toolbox.defaultSettings["Misc"]["Context Warning Frequency"],
           x => `> Set Context Warning Frequency: ${x}`
         ),
         new Setting(
@@ -394,17 +533,17 @@ function toolbox(phase){
         ),
         new Setting(
           "Output Trimming",
-          DEFAULT_SETTINGS["Misc"]["Output Trimming"],
+          state.toolbox.defaultSettings["Misc"]["Output Trimming"],
           x => `> Enable Output Trimming: ${x}`
         ),
         new Setting(
           "Paragraph Breaks",
-          DEFAULT_SETTINGS["Misc"]["Paragraph Breaks"],
+          state.toolbox.defaultSettings["Misc"]["Paragraph Breaks"],
           x => `> Add Paragraph Breaks: ${x}`
         ),
         new Setting(
           "Paragraph Break Length",
-          DEFAULT_SETTINGS["Misc"]["Paragraph Break Length"],
+          state.toolbox.defaultSettings["Misc"]["Paragraph Break Length"],
           x => `> Set Paragraph Break Length: ${x}`
         )
         ]
@@ -414,102 +553,126 @@ function toolbox(phase){
     static SETTINGS_DESCRIPTIONS = {
       "Tool": `⚙️ Settings Guide - Tool Settings
 > Settings are listed in the entry above.
-> Settings can be changed by changing the values that come after the colon.
+> Settings can be changed by changing the values that come after the colon (:) on each line.
 > Do not change the text before the colon.
 > Below are descriptions of what each setting does.
 
 General
-> Set Tool Output Size (Default: ${DEFAULT_SETTINGS["Tool"]["Tool Output Size"]}): changes the word count target for each full tool output.
+> Set Tool Output Size (Default: ${state.toolbox.defaultSettings["Tool"]["Tool Output Size"]}): changes the word count target for each full tool output.
  >> Does not affect Motive or Reflect, and only sets a maximum size for CYOA 
  >> This should be about 75% of your Response Length, but can be adjusted up or down to preference.
  >> If your Response Length is 400, this should be set to 300.
-> Enable Reminder Text (Default: ${DEFAULT_SETTINGS["Tool"]["Reminder Text"]}): if true, non-essential text reminders about how tools work are included when certain tools are used.
+> Enable Reminder Text (Default: ${state.toolbox.defaultSettings["Tool"]["Reminder Text"]}): if true, non-essential text reminders about how tools work are included when certain tools are used.
  >> These reminders are on lines starting with "📝"
 
 Visibility
-> Default to Snapshot Visible (Default: ${DEFAULT_SETTINGS["Tool"]["Snapshot Visible"]}): if true, Snapshot outputs default to being visible to the AI.
-> Default to Mindview Visible (Default: ${DEFAULT_SETTINGS["Tool"]["Mindview Visible"]}): if true, Mindview outputs default to being visible to the AI.
+> Default to Snapshot Visible (Default: ${state.toolbox.defaultSettings["Tool"]["Snapshot Visible"]}): if true, Snapshot outputs default to being visible to the AI.
+> Default to Mindview Visible (Default: ${state.toolbox.defaultSettings["Tool"]["Mindview Visible"]}): if true, Mindview outputs default to being visible to the AI.
+
+Speed
+> Enable Story Speed Instructions (Default: ${state.toolbox.defaultSettings["Tool"]["Story Speed Instructions"]}): if true, a set of instructions will be added to the bottom of context telling the AI how fast the story should move.
+> Set Speed Multiplier (Default: ${state.toolbox.defaultSettings["Tool"]["Speed Multiplier"]}): the speed at which the story should move. Rounds to the nearest valid value: 0.1, 0.25, 0.5, 1, 2, 4, 10
 
 CYOA
-> Set CYOA Choice Size (Default: ${DEFAULT_SETTINGS["Tool"]["CYOA Choice Size"]}): changes the word count target for each of the four options CYOA presents
+> Set CYOA Choice Size (Default: ${state.toolbox.defaultSettings["Tool"]["CYOA Choice Size"]}): changes the word count target for each of the four options CYOA presents
 
 Direct
-> Set Scene Instruction Fade (Default: ${DEFAULT_SETTINGS["Tool"]["Scene Instruction Fade"]}): The number of outputs scene instructions created by Direct will remain visible for.
+> Set Scene Instruction Fade (Default: ${state.toolbox.defaultSettings["Tool"]["Scene Instruction Fade"]}): The number of outputs scene instructions created by Direct will remain visible for.
  >> Afterwards, they will be hidden from the AI
  >> If set to 0 or -1, scene instructions won't get hidden automatically after a set time
 
 Card
-> Default to Prompt Cards (Default: ${DEFAULT_SETTINGS["Tool"]["Prompt Cards"]}): If true, prompt cards without triggers are created.
+> Default to Prompt Cards (Default: ${state.toolbox.defaultSettings["Tool"]["Prompt Cards"]}): If true, prompt cards without triggers are created.
  >> If false, traditional story cards with triggers are created.
  >> Prompt cards always appear in context by default
- >> Prompts are configurable in Context Settings and Prompt Sequence
-> Use Full-Title Triggers (Default: ${DEFAULT_SETTINGS["Tool"]["Full-Title Triggers"]}): If true, the entire card title will be used as its trigger.
+ >> Prompts are configurable in Context Settings and Prompt Load Order
+> Use Full-Title Triggers (Default: ${state.toolbox.defaultSettings["Tool"]["Full-Title Triggers"]}): If true, the entire card title will be used as its trigger.
  >> If false, each word in the card title except for small words like "and" will be used as separate triggers.
  >> Only matters if creating a traditional story card, not a prompt card
 
 Motive
-> Set Motive Size (Default: ${DEFAULT_SETTINGS["Tool"]["Motive Size"]}): changes the word count target for motives.
-> Set Motive Cap (Default: ${DEFAULT_SETTINGS["Tool"]["Motive Cap"]}): The number of motives that are saved for each character.
+> Set Motive Size (Default: ${state.toolbox.defaultSettings["Tool"]["Motive Size"]}): changes the word count target for motives.
+> Set Motive Cap (Default: ${state.toolbox.defaultSettings["Tool"]["Motive Cap"]}): The number of motives that are saved for each character.
  >> The most recent motive for each character will always be their "Current Motive"
  >> If this is above 1, older motives will be converted to "Prior Motive"
  >> If a new motive is added past the cap, the oldest will be deleted.
-> Set Motive Fade (Default: ${DEFAULT_SETTINGS["Tool"]["Motive Fade"]}): The number of outputs a motive will persist for, after which it will be deleted.
+> Set Motive Fade (Default: ${state.toolbox.defaultSettings["Tool"]["Motive Fade"]}): The number of outputs a motive will persist for, after which it will be deleted.
  >> If set to 0 or -1, motives won't get deleted automatically after a set time
 
 Reflect
-> Set Reflect Size (Default: ${DEFAULT_SETTINGS["Tool"]["Reflect Size"]}): changes the word count target for reflections.
-> Set Reflect Cap (Default: ${DEFAULT_SETTINGS["Tool"]["Reflect Cap"]}): The number of reflections that are saved for each character.
+> Set Reflect Size (Default: ${state.toolbox.defaultSettings["Tool"]["Reflect Size"]}): changes the word count target for reflections.
+> Set Reflect Cap (Default: ${state.toolbox.defaultSettings["Tool"]["Reflect Cap"]}): The number of reflections that are saved for each character.
  >> The most recent reflection for each character will always be their "Current Thoughts"
  >> If this is above 1, older reflections will be converted to "Prior Thoughts"
  >> If a new reflection is added past the cap, the oldest will be deleted.
-> Set Reflect Fade (Default: ${DEFAULT_SETTINGS["Tool"]["Reflect Fade"]}): The number of outputs a reflection will persist for, after which it will be deleted.
+> Set Reflect Fade (Default: ${state.toolbox.defaultSettings["Tool"]["Reflect Fade"]}): The number of outputs a reflection will persist for, after which it will be deleted.
  >> If set to 0 or -1, reflections won't get deleted automatically after a set time
 `,
       "Context": `⚙️ Settings Guide - Context Settings
 > Settings are listed in the entry above.
-> Settings can be changed by changing the values on lines starting with "> ".
+> Settings can be changed by changing the values that come after the colon (:) on each line starting with ">".
 > Do not change the text before the colon.
 > Below are descriptions of what each setting does.
 
+Smart Context - Cards
+> Enable AI Card Management (Default: ${state.toolbox.defaultSettings["Context"]["AI Card Management"]}): whether the AI can include requests to load or unload certain types of prompt cards (regions, locations, characters, events, etc.) in its outputs.
+ >> There is a one-turn delay to context changes. If the AI includes a request to load a prompt card in one of its outputs, that information will only be available to it on the next action.
+ >> All changes will be reflected in the Prompt Load Order story card.
+ >> Can significantly reduce context usage by only loading the prompt cards the AI needs at any given moment.
+> Enable Prompt Load/Unload Notifications (Default: ${state.toolbox.defaultSettings["Context"]["Prompt Load/Unload Notifications"]}): Whether messages listing the prompts being loaded and unloaded will be visible to the player.
+
+Smart Context - Summaries
+> Enable Improved Story Summarization (Default: ${state.toolbox.defaultSettings["Context"]["Improved Story Summarization"]}): Creates summary cards from the oldest parts of the story when they overflow context.
+ >> Summaries use a full output from your current AI model, and only happen on "continue" actions.
+ >> Text that has been summarized will be excluded from context and replaced with the summaries.
+ >> Each summary creates its own story card, where the summaries can be edited.
+ >> Improved Story Summarization works best for context sizes of 6000+, and should NOT be used alongside AI Dungeon's native Auto Summarization feature. 
+> Set Compression Ratio (Default: ${state.toolbox.defaultSettings["Context"]["Compression Ratio"]}): how much text is gathered to produce a summary.
+ >> The ratio is compared to your Tool Output Size (Tool Settings). If your Tool Output Size is 150 words and your Compression Ratio is 10:1, ~1500 words of story text will be used to create each summary.
+> Enable Summary Summarization (Default: ${state.toolbox.defaultSettings["Context"]["Summary Summarization"]}): Whether summaries can be further compressed when there is too much summary text to fit into context.
+ >> Summaries can only be compressed once.
+> Set Second-Order Compression Ratio (Default: ${state.toolbox.defaultSettings["Context"]["Second-Order Compression Ratio"]}):
+ >> The compression ratio used when creating summaries from other summaries.
+
 Context Positioning
-> Set Prompt Depth (Default: ${DEFAULT_SETTINGS["Context"]["Prompt Depth"]}): How many paragraphs of context behind which various context elements are inserted
+> Set Prompt Depth (Default: ${state.toolbox.defaultSettings["Context"]["Prompt Depth"]}): How many paragraphs of context behind which various context elements are inserted
   >> These elements include Default Instructions, Prompt Cards, Basic Personification, and Echo Ban
-> Include Instructions Behind Prompt Cards (Default: ${DEFAULT_SETTINGS["Context"]["Instructions Behind Prompt Cards"]}): If true, Default Instructions (if enabled) will be inserted into context just behind prompt cards.
+> Include Instructions Behind Prompt Cards (Default: ${state.toolbox.defaultSettings["Context"]["Instructions Behind Prompt Cards"]}): If true, Default Instructions (if enabled) will be inserted into context just behind prompt cards.
  >> If false, Default Instructions will be inserted just in front of prompt cards.
 
 Context Elements
  >> For each of the following, if set to true, that element will be included in context.
  >> If set to false, that element will be omitted.
-> Enable Default Instructions (Default: ${DEFAULT_SETTINGS["Context"]["Default Instructions"]}): A large set of generic writing guidelines.
-> Enable Prompt Cards (Default: ${DEFAULT_SETTINGS["Context"]["Prompt Cards"]}): The contents of story cards with the "Prompt" type.
-> Enable Basic Personification (Default: ${DEFAULT_SETTINGS["Context"]["Basic Personification"]}): instructions encouraging complex characters.
-> Enable Advanced Personification (Default: ${DEFAULT_SETTINGS["Context"]["Advanced Personification"]}): More extensive instructions added just after each character card.
+> Enable Default Instructions (Default: ${state.toolbox.defaultSettings["Context"]["Default Instructions"]}): A large set of generic writing guidelines.
+> Enable Prompt Cards (Default: ${state.toolbox.defaultSettings["Context"]["Prompt Cards"]}): The contents of story cards with the "Prompt" type.
+> Enable Basic Personification (Default: ${state.toolbox.defaultSettings["Context"]["Basic Personification"]}): instructions encouraging complex characters.
+> Enable Advanced Personification (Default: ${state.toolbox.defaultSettings["Context"]["Advanced Personification"]}): More extensive instructions added just after each character card.
  >> Works with both prompt cards and traditional story cards
  >> Applies to any card with "- Character" in the title line
  >> Only applies to traditional story cards when they are triggered
 > Enable Echo Ban (Default: true): A strong instruction aimed at preventing repetitive outputs.
-> Enable Imperative (Default: ${DEFAULT_SETTINGS["Context"]["Echo Ban"]}): A very strong instruction to move the story forward.
-> Enable Boundary Markers (Default: ${DEFAULT_SETTINGS["Context"]["Boundary Markers"]}): Small notations that help separate context elements`,
+> Enable Imperative (Default: ${state.toolbox.defaultSettings["Context"]["Echo Ban"]}): A very strong instruction to move the story forward.
+> Enable Boundary Markers (Default: ${state.toolbox.defaultSettings["Context"]["Boundary Markers"]}): Small notations that help separate context elements`,
       "Misc": `⚙️ Settings Guide - Misc Settings
 > Settings are listed in the entry above.
-> Settings can be changed by changing the values that come after the colon.
+> Settings can be changed by changing the values that come after the colon (:) on each line.
 > Do not change the text before the colon.
 > Below are descriptions of what each setting does.
 
 Warnings
-> Enable Context Size Warning (Default: ${DEFAULT_SETTINGS["Misc"]["Context Size Warning"]}): If true, shows a warning when your Tokens in Context exceeds your Context Length
+> Enable Context Size Warning (Default: ${state.toolbox.defaultSettings["Misc"]["Context Size Warning"]}): If true, shows a warning when your Tokens in Context exceeds your Context Length
  >> Tokens in Context includes the following elements, in the order they get trimmed:
  >> Older Story, Story Cards, Plot Essentials, Instructions, Prompt Cards, Recent Story
  >> To save some context, you can disable components in the Context Settings story card.
- >> Prompt cards can be individually disabled in the Prompt Sequence story card.
-> Set Context Warning Frequency (Default: ${DEFAULT_SETTINGS["Misc"]["Context Warning Frequency"]}): The number of outputs before another context size warning can be shown.
+ >> Prompt cards can be individually disabled in the Prompt Load Order story card.
+> Set Context Warning Frequency (Default: ${state.toolbox.defaultSettings["Misc"]["Context Warning Frequency"]}): The number of outputs before another context size warning can be shown.
  >> Context warnings after the first are presented in a more compact format.
 
 Output Processing
-> Enable Output Trimming (Default: ${DEFAULT_SETTINGS["Misc"]["Output Trimming"]}): If true, outputs will be trimmed to the nearest sentence ending.
+> Enable Output Trimming (Default: ${state.toolbox.defaultSettings["Misc"]["Output Trimming"]}): If true, outputs will be trimmed to the nearest sentence ending.
  >> This is functionally very similar to having Raw Model Output set to Off.
-> Add Paragraph Breaks (Default: ${DEFAULT_SETTINGS["Misc"]["Paragraph Breaks"]}): If true, the final paragraph of an output will have a linebreak added to it if it has more than a certain number of sentences.
-> Set Paragraph Break Length (Default: ${DEFAULT_SETTINGS["Misc"]["Paragraph Break Length"]}): The number of sentences required for an automatic line break.
+> Add Paragraph Breaks (Default: ${state.toolbox.defaultSettings["Misc"]["Paragraph Breaks"]}): If true, the final paragraph of an output will have a linebreak added to it if it has more than a certain number of sentences.
+> Set Paragraph Break Length (Default: ${state.toolbox.defaultSettings["Misc"]["Paragraph Break Length"]}): The number of sentences required for an automatic line break.
  >> This setting only functions if Add Paragraph Breaks is set to true`
     }
 
@@ -529,7 +692,7 @@ Output Processing
       if (!settings) return;
 
       let settingsCard = type === "Hidden" 
-        ? state.hiddenSettingsCard
+        ? state.toolbox.hiddenSettingsCard
         : storyCards.find(c => c.type === "Settings" && this.typeFromTitle(c.title) === type);
       if (!settingsCard) settingsCard = settings.createCard();
 
@@ -537,18 +700,22 @@ Output Processing
 
       lines.forEach(l => {
         this.FILTERS.forEach(f => l = l.replace(f, ""));
-        
-        const settingName =  l.match(BEFORE_COLON_REGEX)[0]?.trim();
 
-        const setting= settings.settingArray.find(p => p.name === settingName);
+        if (!l) return;
+
+        const settingName = l.match(BEFORE_COLON_REGEX)[0]?.trim();
+
+        if (!settingName) return;
+
+        const setting = settings.settingArray.find(p => p.name === settingName);
 
         if (setting){
           const stringValue = l.match(AFTER_COLON_REGEX)[0]?.split(" - ")[0].trim();
           if (!isActuallyNaN(parseInt(stringValue))) {
             setting.value = parseInt(stringValue);
-          } else if (stringValue.toLowerCase() === "true") {
+          } else if (state.toolbox.truthyWords.includes(stringValue.toLowerCase())) {
             setting.value = true;
-          } else if (stringValue.toLowerCase() === "false") {
+          } else if (state.toolbox.falsyWords.includes(stringValue.toLowerCase())) {
             setting.value = false;
           } else {
             setting.value = stringValue;
@@ -572,8 +739,7 @@ Output Processing
 
     static setSetting(type, settingName, value) {
       const settings = this.get(type);
-      const setting = settings?.settingsArray?.find(s => s.name.toLowerCase() === settingName.toLowerCase());
-      
+      const setting = settings?.settingArray?.find(s => s.name.toLowerCase() === settingName.toLowerCase());
       if (setting) {
         setting.value = value;
         settings.update();
@@ -600,10 +766,15 @@ Output Processing
 
     update () {
       const card = this.type === "Hidden"
-        ? state.hiddenSettingsCard
-        : storyCards.find(c => c.type = "Settings" && c.title === this.getTitle());
+        ? state.toolbox.hiddenSettingsCard
+        : storyCards.find(c => c.type === "Settings" && c.title === this.getTitle());
       if (card) {
-        c.entry = this.settingArray.map(o => o.callback(o.defaultValue)).join("\n");
+        card.entry = this.settingArray.map(o => {
+          const value = (o.value === null || o.value === undefined)
+            ? o.defaultValue
+            : o.value;
+          return o.callback(value)
+        }).join("\n");
       } else {
         this.createCard();
       };
@@ -612,7 +783,7 @@ Output Processing
     createCard () {
       if(this.type === "Hidden") {
         // set and return a dummy card for any potential chaining
-        state.hiddenSettingsCard = {
+        state.toolbox.hiddenSettingsCard = {
           "title": this.getTitle(),
           "type": "Settings",
           "entry": `${this.settingArray.map(o => o.callback(o.defaultValue)).join("\n")}`,
@@ -620,7 +791,7 @@ Output Processing
           "keys": ""
         };
 
-        return state.hiddenSettingsCard;
+        return state.toolbox.hiddenSettingsCard;
       };
       return newCard(
         this.getTitle(),
@@ -645,7 +816,7 @@ Output Processing
       "append": new Message("append", "x => globalThis.text += x"),
       "appendHistory": new Message("appendHistory", "x => history[history.length - 1].text += x"),
       "trim": new Message("trim", "() => globalThis.text = trimToLastEnding(globalThis.text)"),
-      "exit": new Message("exit", "() => state.exit = true")
+      "exit": new Message("exit", "() => state.toolbox.exit = true")
     };
     // Execute this message instance
     execute() {
@@ -721,16 +892,16 @@ Output Processing
       }
       // Reset message queue when exhausted
       if (messages.queue.length > 0) {
-        state[phase + "Messages"] = { queue: [], index: 0 };
+        state.toolbox[phase + "Messages"] = { queue: [], index: 0 };
       }
       return null;
     }
 
     static getListByPhase(phase) {
       const PHASE_MAP = {
-        "input": state.inputMessages,
-        "context": state.contextMessages,
-        "output": state.outputMessages
+        "input": state.toolbox.inputMessages,
+        "context": state.toolbox.contextMessages,
+        "output": state.toolbox.outputMessages
       };
 
       if (!Object.keys(PHASE_MAP).includes(phase)) throw new Error("Invalid Phase");
@@ -745,9 +916,9 @@ Output Processing
     }
 
     static resetState() {
-      state.inputMessages = { queue: [], index: 0 };
-      state.contextMessages = { queue: [], index: 0 };
-      state.outputMessages = { queue: [], index: 0 };
+      state.toolbox.inputMessages = { queue: [], index: 0 };
+      state.toolbox.contextMessages = { queue: [], index: 0 };
+      state.toolbox.outputMessages = { queue: [], index: 0 };
     }
   }
 
@@ -1036,11 +1207,13 @@ ${`Multi-line text block. One or more paragraphs summarizing events, starting wh
   c.entry.includes("Name: ")
     ? c.entry.split("\n").find(l=>l.includes("Name: ")).split("Name: ")[1]
     : deSymbol(c.title)
-).join(", ")}
+).join(", ")}${isPrompt ? `
+## Card Types: ${state.toolbox.cardTypes.join(", ")}`:``}
 ## Word Count: High-priority. Your output is limited to ${this.OUTPUT_SIZE} words. Complete the entire template within that ${this.OUTPUT_SIZE}-word limit.
 ## Template:
 Title: \${A title for the article. If the topic is a person, place, or named object, the title should simply be their name. Otherwise keep it to a short phrase that relates the topic.}
-Type: ${isPrompt ? `\${One of the following: Character, World, or Story}` : `\${One of the following is preferred: Character, Class, Race, Location, Faction. If your topic does not fall into one of the listed categories, you may create your own type. Keep it to a single word.}`}
+${isPrompt ? `Category: \${Must be exactly one of the following: Character, World, or Story}
+Type: \${Must be exactly one of the card types listed above.}` : `Category: \${One of the following is preferred: Character, Class, Race, Location, Faction. If your topic does not fall into one of the listed categories, you may create your own. Keep it to a single word.}`}
 \${Key}: \${Value. Single-line text block.}
 \${Key}: \${Value. Single-line text block.}
 \${Key}: \${Value. Single-line text block.}`
@@ -1071,7 +1244,7 @@ Type: ${isPrompt ? `\${One of the following: Character, World, or Story}` : `\${
 
               const isPrompt = isPromptCard(card);
               if (!isPrompt) card.entry = card.entry.replace(/^.*\n/, "");
-              state.updateCardId = card.id;
+              state.toolbox.updateCardId = card.id;
 
               return `# AI Instructions
 ## Role: Lore Entry Updater
@@ -1096,16 +1269,16 @@ ${trimEntry(card.entry)[0]}
             ["motive", "v"],
             true,
             [],
-            "the character with the strongest motivations in this scene who doesn't already have an up-to-date motive",
+            "randomly select one of the characters participating in this scene",
             "Record a character's motivations",
             "a character name, e.g., /v Jane",
             [ 
               {
-                message: new Message ("hideAddendumsOn", "() => state.hideAddendums = true"),
+                message: new Message ("hideAddendumsOn", "() => state.toolbox.hideAddendums = true"),
                 phase: "context"
               },
               {
-                message: new Message ("hideAddendumsOff", "() => state.hideAddendums = false"),
+                message: new Message ("hideAddendumsOff", "() => state.toolbox.hideAddendums = false"),
                 phase: "output"
               },             
               {
@@ -1115,11 +1288,12 @@ ${trimEntry(card.entry)[0]}
             ],
             (o,r) => {
               const motiveSize = Settings.getValue('Tool', 'Motive Size');
-              const parts = r.split(";")
+              const parts = r.split(";");
               const name = parts[0].trim();
-              const card = nearestCardMatch(name, ownerlessFilter, mindSort, false);
+              const card = nearestCardMatch(name, ownerlessCharacterFilter, mindSort, false) 
+                || nearestCardMatch(name, ownerlessFilter, mindSort, false);
               const [cardName] = partsFromTitle(deSymbol(card?.title));
-              const request = parts.slice(1).join(";").trim();
+              const request = parts.slice(1).join(";").trim() || name;
               return `\n# Motive Creation Instructions
 ## Write a short motive blurb for ${cardName || name} where they express what they want to get out of the current scene.
 ## Motives help give depth to the character, and must be realistic and true to the character above all else.
@@ -1129,7 +1303,7 @@ ${trimEntry(card.entry)[0]}
 ## Motives must start with the name of the character, followed by a colon, then the motive blurb.
 ## The motive blurb should include terms such as "I want," "I need," "I wonder," "I can't," or "I don't."
 ## Afterwards, continue writing the story, picking up exactly where it left off.
-## Reflection Subject: ${cardName || name}${request ? `
+## Reflection Subject: ${cardName || name}${!cardName?.toLowerCase().includes(request.toLowerCase()) ? `
 ## Motive Request: ${request}
 ## The motive request should be worked naturally into the motive blurb.` :""}
 ## Template:
@@ -1145,16 +1319,16 @@ ${trimEntry(card.entry)[0]}
             ["reflect", "x"],
             true,
             [],
-            "the character with the most to think about right now",
+            "randomly select one of the characters participating in this scene",
             "Record a snippet of a character's thoughts",
             "a character name, e.g., /x Jane",
             [
               {
-                message: new Message ("hideAddendumsOn", "() => state.hideAddendums = true"),
+                message: new Message ("hideAddendumsOn", "() => state.toolbox.hideAddendums = true"),
                 phase: "context"
               },
               {
-                message: new Message ("hideAddendumsOff", "() => state.hideAddendums = false"),
+                message: new Message ("hideAddendumsOff", "() => state.toolbox.hideAddendums = false"),
                 phase: "output"
               },
               {
@@ -1164,11 +1338,12 @@ ${trimEntry(card.entry)[0]}
             ],
             (o,r) => {
               const reflectSize = Settings.getValue('Tool', 'Reflect Size');
-              const parts = r.split(";")
+              const parts = r.split(";");
               const name = parts[0].trim();
-              const card = nearestCardMatch(name, ownerlessFilter, mindSort, false);
+              const card = nearestCardMatch(name, ownerlessCharacterFilter, mindSort, false)
+                || nearestCardMatch(name, ownerlessFilter, mindSort, false);
               const [cardName] = partsFromTitle(card?.title);
-              const request = parts.slice(1).join(";").trim();
+              const request = parts.slice(1).join(";").trim() || name;
               return `\n# Reflection Instructions
 ## Write a short reflection for ${cardName || name} where they express their inner state: a prevailing thought, a powerful sensation, or an idle consideration.
 ## Reflections help give depth to the character, and must be realistic and true to the character above all else.
@@ -1177,7 +1352,7 @@ ${trimEntry(card.entry)[0]}
 ## Reflections must be candid, and they can be crude, selfish, or bigoted.
 ## Reflections must start with the name of the character, followed by a colon, then the reflection blurb.
 ## Afterwards, continue writing the story, picking up exactly where it left off.
-## Reflection Subject: ${cardName || name}${request ? `
+## Reflection Subject: ${cardName || name}${!cardName?.toLowerCase().includes(request.toLowerCase()) ? `
 ## Reflection Request: ${request}
 ## The reflection request should be worked naturally into the reflection blurb.` :""}
 ## Template:
@@ -1260,7 +1435,7 @@ Gains: \${The benefits gained using ${r} in terms of ${resourceLine}, or "None" 
             null,
             [          
               {
-                message: Message.fromPool("setText", ABORT_OUTPUT),
+                message: Message.fromPool("setText", state.toolbox.abortOutput),
                 phase: "context"
               },   
               {
@@ -1285,13 +1460,13 @@ Gains: \${The benefits gained using ${r} in terms of ${resourceLine}, or "None" 
             ["speed", "z"],
             false,
             [],
-            `${state.speed 
-              ? state.speed + 1 >= SPEEDS.length 
-                ? SPEEDS[0]
-                : SPEEDS[state.speed + 1]
+            `${Settings.getValue("Tool", "Story Speed Instructions") 
+              ? findNearestFloat(state.toolbox.speeds, parseFloat(Settings.getValue("Tool", "Speed Multiplier"))) + 1 >= state.toolbox.speeds.length 
+                ? state.toolbox.speeds[0]
+                : state.toolbox.speeds[findNearestFloat(state.toolbox.speeds, parseFloat(Settings.getValue("Tool", "Speed Multiplier"))) + 1]
               : "2"}`,
-            "Change the pace of narration (0.1x, 0.25x, 0.5x, 1x, 2x, 4x, 10x)",
-            "the narration speed multiplier, e.g., /z 0.25",
+            "Change the pace of the story (0.1x, 0.25x, 0.5x, 1x, 2x, 4x, 10x)",
+            "the story speed multiplier, e.g., /z 0.25",
             [          
               {
                 message: new Message ("setSpeed", "setSpeed"),
@@ -1316,7 +1491,7 @@ Gains: \${The benefits gained using ${r} in terms of ${resourceLine}, or "None" 
             null,
             [          
               {
-                message: Message.fromPool("setText", ABORT_OUTPUT),
+                message: Message.fromPool("setText", state.toolbox.abortOutput),
                 phase: "context"
               },   
               {
@@ -1346,7 +1521,7 @@ Gains: \${The benefits gained using ${r} in terms of ${resourceLine}, or "None" 
             null,
             [          
               {
-                message: Message.fromPool("setText", ABORT_OUTPUT),
+                message: Message.fromPool("setText", state.toolbox.abortOutput),
                 phase: "context"
               },   
               {
@@ -1392,7 +1567,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     }
 
     getVisibleLine() {
-      return `${VISIBILITY_SYM} Visible to AI? (Y/N): ${this.defaultVisible ? "Y" : "N"}`;
+      return `${state.toolbox.visibilitySym} Visible to AI? (Y/N): ${this.defaultVisible ? "Y" : "N"}`;
     }
   }
   
@@ -1589,55 +1764,75 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
   return globalThis.text;
 
   // Core Logic
-  function initializeState(){
-    state.schedule = [];
-    state.hiddenCards = [];
-    state.motiveLog = {};
-    state.reflectLog = {};
-  }
+  function initializeToolbox(){
+    initializeState();
+    parsePlaceholderCards();
+    Settings.initialize();
 
-  function parseResponseLengthPlaceholder() {
-    const responseLength = parseInt(state.placeholders.find(p => p.question.startsWith("Response Length"))?.answer.replaceAll("\n", " ").trim());
+    // Replace proxy placeholders from Generate with real ones.
+    storyCards.forEach(c => {
+      c.title = c.title.replaceAll("!{", "${");
+      c.entry = c.entry.replaceAll("!{", "${");
+    });
 
-    if (!isActuallyNaN(responseLength)) {
-      const outputSize = Math.round((responseLength*0.75)/5)*5;
-      const toolMulti = (x) => Math.round((x*(responseLength/200))/5)*5;
-      DEFAULT_SETTINGS.Tool["Tool Output Size"] = outputSize;
-      DEFAULT_SETTINGS.Tool["CYOA Choice Size"] = toolMulti(DEFAULT_SETTINGS.Tool["CYOA Choice Size"]);
-    }
-  }
-
-  function assembleInput(){
-    if (history.length === 0) {
-      initializeState();
-      parsePlaceholderCards();
-      Settings.initialize();
-
-      // Replace proxy placeholders from Generate with real ones.
+    // Replace placeholders in story card titles
+    state.placeholders.forEach(p => {
       storyCards.forEach(c => {
-        c.title = c.title.replaceAll("!{", "${");
-        c.entry = c.entry.replaceAll("!{", "${");
-      });
-
-      // Replace placeholders in story card titles
-      state.placeholders.forEach(p => {
-        storyCards.forEach(c => {
-          if (c.title.includes(`\${${p.question}}`)) 
-            c.title = c.title.replaceAll(`\${${p.question}}`, p.answer);
-        })
+        if (c.title.includes(`\${${p.question}}`)) 
+          c.title = c.title.replaceAll(`\${${p.question}}`, p.answer);
       })
+    })
 
+    if(history.length === 0) {
       // placeholders can be large. Get rid of them to improve performance.
       delete state.placeholders;
 
       if (Settings.getValue("Hidden", "Dynamic Opening")) {
         globalThis.text = getDynamicOpening();
       };
+    } else {
+      Message.postFromPool("prepend", "output", "\n🧰 Toolbox Initialized\n\n");
+    }
+  }
 
-      return;
-    };
+  function initializeState(){
+    state.toolbox.schedule = [];
+    state.toolbox.hiddenCards = [];
+    state.toolbox.motiveLog = {};
+    state.toolbox.reflectLog = {};
+    state.toolbox.initialized = true;
+  }
+
+  function parseResponseLengthPlaceholder() {
+    const responseLength = parseInt(state.placeholders.find(p => deSymbol(p.question).startsWith("Response Length"))?.answer.replaceAll("\n", " ").trim());
+
+    if (!isActuallyNaN(responseLength)) {
+      const outputSize = Math.round((responseLength*0.75)/5)*5;
+      const toolMulti = (x) => Math.round((x*(responseLength/200))/5)*5;
+      state.toolbox.defaultSettings.Tool["Tool Output Size"] = outputSize;
+      state.toolbox.defaultSettings.Tool["CYOA Choice Size"] = toolMulti(state.toolbox.defaultSettings.Tool["CYOA Choice Size"]);
+    }
+  }
+  
+  function parseSmartContextPlaceholder() {
+    const response = unPunc(state.placeholders.find(p => deSymbol(p.question).startsWith("Smart Context"))?.answer.replaceAll("\n", " ").replaceAll('"', "").toLowerCase())?.trim();
+
+    if (state.toolbox.truthyWords.includes(response)) {
+      state.toolbox.defaultSettings.Context["AI Card Management"] = true;
+      state.toolbox.defaultSettings.Context["Improved Story Summarization"] = true;
+    }
+  }
+
+  function assembleInput(){
+    state.toolbox.inputOccurred = true;
+
     Message.resetState();
-    state.resetInInput = true;
+
+    if (!state.toolbox.initialized) {
+      initializeToolbox();
+      if (history.length === 0) return;
+    };
+  
     clearTempData(null, true);
     const command = Command.fromInput(globalThis.text);
     if (!command) {
@@ -1647,43 +1842,46 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     }
     if (!(command.tool instanceof Tool)){
       Message.postFromPool("exit", "context");
-      Message.postFromPool("setText", "context", ABORT_OUTPUT);
+      Message.postFromPool("setText", "context", state.toolbox.abortOutput);
       Message.postFromPool("exit", "output");
       Message.postFromPool("setText", "output", Tool.list());
       return `⛔ "${command.input}" is not a valid command ⛔`;
     };
     if (command.tool.messages.length > 0){
       command.tool.postMessages({request: command.request, options: command.options.join(",")});
-      state.postedInInput = true;
+      state.toolbox.postedInInput = true;
     };
     if (command.options.some(o => o.startsWith("s")) && !(command.tool.name === "List" || command.tool.name === "Help")) {
       Message.postFromPool("prepend", "output", "📅 Command Scheduled - check Tool Schedule story card\n\n")
     };
     Message.executeByPhase("input");
-    if (state.exit) {
-      state.exit = false;
+    if (state.toolbox.exit) {
+      state.toolbox.exit = false;
       return;
     };
     globalThis.text = `${command.toString()}${globalThis.text.startsWith("\> ") ? "" : "\n\n"}`;
   }
-  
+
   function assembleContext() {
-    if (!state.resetInInput) Message.resetState();
-    state.resetInInput = false;
-    state.maxChars = info.maxChars;
+    if (!state.toolbox.initialized) {
+      initializeToolbox();
+    };
+
+    if (!state.toolbox.inputOccurred) Message.resetState();
+    state.toolbox.maxChars = info.maxChars;
     removeFaded("motive");
     removeFaded("reflect");
-    const startingLineCount = getFilteredLinesFromHistory().length;
     
     updateSchedule();
+    
     updatePromptSequenceCard();
 
     const command = Command.getActive();
 
-    if (!state.postedInInput) {
+    if (!state.toolbox.postedInInput) {
       command?.tool?.postMessages({request: command.request, options: command.options.join(",")});
     };
-    state.postedInInput = false;
+    state.toolbox.postedInInput = false;
 
     const latest = latestContinue();
 
@@ -1698,17 +1896,23 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
     Message.executeByPhase("context");
 
-    if (state.exit) {
-      state.exit = false;
+    if (state.toolbox.exit) {
+      state.toolbox.exit = false;
       return;
     };
 
     let [cards, nonCards] = getNormalStoryCards(Settings.getValue("Context", "Advanced Personification"));
 
-    const lines = getFilteredLinesFromHistory();
-    const imperativeIndex = getParagraphIndex(lines, -1);
+    const compressionEnabled = Settings.getValue("Context", "Improved Story Summarization");
+    const lines = compressionEnabled ? getFilteredLinesFromHistory(false) : getFilteredLinesFromHistory();
+    const startingLineCount = lines.length;
+    const imperativeIndex = getParagraphIndex(lines, -2);
     const breakPoint = getBreakPoint(lines, startingLineCount);
     const prompt = command?.prompt();
+    const lastCompressedLine = compressionEnabled 
+      ? Math.min(lines.indexOf(getLastCompressedLine()), lines.length - 2)
+      : null;
+      
     let floatingPrompt;
     if (Settings.getValue("Context", "Prompt Cards")) {
       if (storyCards.some(c => isPromptCard(c))) {
@@ -1719,9 +1923,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
       };
     }
 
-    
-
-    if (state.hideAddendums) {
+    if (state.toolbox.hideAddendums) {
       cards = cards.join("\n").split("\n").filter(l => !(l.includes("Motive:") || l.includes('Motive":') || l.includes("Thoughts:") || l.includes('Thoughts":')));
       floatingPrompt = floatingPrompt.split("\n").filter(l => !(l.includes("Motive:") || l.includes('Motive":') || l.includes("Thoughts:") || l.includes('Thoughts":'))).join("\n");
     }
@@ -1730,19 +1932,26 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     const boundaryMarkers = Settings.getValue("Context", "Boundary Markers");
     const instructionsAbove = Settings.getValue("Context", "Instructions Behind Prompt Cards");
 
+
     if (boundaryMarkers) finalLines.push("[story begins here]");
-    finalLines.push(...lines.slice(0, breakPoint));
+
+    if (lastCompressedLine) {
+      finalLines.push(...lines.slice(lastCompressedLine + 1, breakPoint));
+    } else {
+      finalLines.push(...lines.slice(0, breakPoint));
+    }
+
     finalLines.push("");
 
     if(boundaryMarkers && (cards.length > 0 || nonCards)) {
       finalLines.push("[background information begins here]");
     };
 
-    if (cards.length > 0 && !state.hideCards) finalLines.push(...cards);
+    if (cards.length > 0 && !state.toolbox.hideCards) finalLines.push(...cards);
     if (nonCards) finalLines.push(nonCards);
 
-    if (floatingPrompt && !instructionsAbove && !state.hideCards) {
-      if (boundaryMarkers) finalLines.push("[prompt components begin here]");
+    if (floatingPrompt && !instructionsAbove && !state.toolbox.hideCards) {
+      if (boundaryMarkers) finalLines.push("[lore entries begin here]");
       finalLines.push(floatingPrompt);
       finalLines.push("");
     };
@@ -1751,11 +1960,11 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     if (!prompt && Settings.getValue("Context", "Default Instructions")) {
         finalLines.push(DEFAULT_INSTRUCTIONS);
     } else {
-        finalLines.push(MINIMAL_INSTRUCTIONS);
+        finalLines.push(state.toolbox.minimalInstructions);
     };
 
-    if (floatingPrompt && instructionsAbove && !state.hideCards) {
-      if (boundaryMarkers) finalLines.push("[prompt components begin here]");
+    if (floatingPrompt && instructionsAbove && !state.toolbox.hideCards) {
+      if (boundaryMarkers) finalLines.push("[lore entries begin here]");
       finalLines.push(floatingPrompt);
       finalLines.push("");
     };
@@ -1768,7 +1977,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     };
 
     if (!prompt && Settings.getValue("Context", "Echo Ban")) {
-        finalLines.push(ECHO_BAN);
+        finalLines.push(state.toolbox.echoBan);
     };
     finalLines.push("");
 
@@ -1778,46 +1987,118 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
     if (state.memory.authorsNote) finalLines.push(state.memory.authorsNote);
 
-    if (Settings.getValue("Context", "Imperative")) finalLines.push(IMPERATIVE);
+    if (Settings.getValue("Context", "Imperative")) finalLines.push(state.toolbox.imperative);
+
+    if (Settings.getValue("Context", "AI Card Management")
+      && command?.tool.name !== "Card"
+      && command?.tool.name !== "Update"
+    ) finalLines.push(getDynamicPromptLoadingInstructions());
 
     finalLines.push(...lines.slice(imperativeIndex));
+
+    if (boundaryMarkers && (
+        prompt
+        || Settings.getValue("Tool", "Story Speed Instructions")
+      )
+    ) finalLines.push("[instructions for next output begin here]")
+
     if (prompt) {
-      if (boundaryMarkers) finalLines.push("[instructions for next output begin here]")
       finalLines.push("");
       finalLines.push(prompt);
       finalLines.push("");
-    } else if (!isActuallyNaN(state.speed)) {
-      finalLines.push(`\n# Narration Instructions\n## The following instructions are high-priority.\n## Ignore the pacing of the story up to this point.\n${SPEED_TEXT[state.speed]}\n## Continue the story, starting exactly where it left off`);
+    } else if (Settings.getValue("Tool", "Story Speed Instructions")) {
+      finalLines.push(`\n# Narration Instructions\n## The following instructions are high-priority.\n## Ignore the pacing of the story up to this point.\n${state.toolbox.speedText[findNearestFloat(state.toolbox.speeds, parseFloat(Settings.getValue("Tool", "Speed Multiplier")))]}\n## Continue the story, starting exactly where it left off`);
     }
 
-    state.hideCards = false;
+    let margin;
+    if (compressionEnabled) margin = info.maxChars - finalLines.reduce((agg, l) => agg += l.length + 1, 0);
+
+    let summary = getStorySummary();
+    if (summary.length > 0) {
+      const buffer = 200;
+
+      if (boundaryMarkers && summary.length > 0) summary = "[story summary begins here]\n\n" + summary;
+
+      let maxChars = state.toolbox.maxChars - summary.length - buffer;
+
+      let idx = finalLines.length - 1;
+
+      for (let i = finalLines.length - 1; i >= 0; i--) {
+        if (maxChars - finalLines[i].length < 0) break;
+        maxChars -= finalLines[i].length;
+        idx = i;
+      }
+
+      if (idx <= 0) {
+        finalLines.unshift(summary);
+      } else {
+        if (boundaryMarkers) summary += "[story begins here]"
+        finalLines[idx - 1] = summary;
+        for (i = 0; i < idx - 1; i++) {
+          finalLines[i] = "";
+        }
+      }
+    }
+
+    state.toolbox.hideCards = false;
 
     globalThis.text = finalLines.join("\n").replace(/\n{3,}/g, "\n\n");
+
+    if (compressionEnabled && margin <= 0 && !command && history[history.length - 1].type === "continue") {
+      const minCompressionSize = getCompressionSize()*0.66;
+      const compressibleContext = [...lines.slice(lastCompressedLine + 1, breakPoint)];
+
+      let totalCompressible = compressibleContext.reduce((agg, x) => agg += x.length, 0);
+      if (totalCompressible > minCompressionSize) {
+        globalThis.text = getCompressionPrompt(compressibleContext);
+      } else {
+        const minSecondOrderCompressionSize = getSecondOrderCompressionSize()*0.5;
+        const compressibleSummaries = getStorySummary(false, true);
+        if (Settings.getValue("Context", "Summary Summarization") && compressibleSummaries.length >= minSecondOrderCompressionSize) {
+          globalThis.text = getSecondOrderCompressionPrompt();
+        } else {
+          const trueMin = Math.ceil(Settings.getValue("Context", "Prompt Depth")/2);
+          let point = breakPoint;
+          while (totalCompressible < minCompressionSize && point < lines.length - trueMin) {
+            compressibleContext.push(lines[point]);
+            point++;
+            totalCompressible = compressibleContext.reduce((agg, x) => agg += x.length, 0);
+          }
+          state.toolbox.lastForcedCompression ??= -5;
+          if (
+            totalCompressible > minCompressionSize 
+            || continueCount() - 5 >= state.toolbox.lastForcedCompression
+          ) {
+            state.toolbox.lastForcedCompression = continueCount();
+            globalThis.text = getCompressionPrompt(compressibleContext);
+          }
+        }
+      }    
+    }
 
     assessAvailableContext();
   }
 
   function assembleOutput() {
-    if(!state.placeholdersRemoved && continueCount() > 1) {
-      state.placeholdersRemoved = true;
-      const removeList = [];
-      storyCards.forEach(c => {
-        if (c.type.toLowerCase() === "placeholder"){
-          removeList.push(c.id);
-        }
-      });
-      removeList.forEach(id => {
-        removeCard(null, null, id);
-      });
+    if (state.toolbox.wasCompressionPrompted) {
+      handleCompressionOutput();
+      return;
     }
 
+    if(state.toolbox.wasSecondOrderCompressionPrompted) {
+      handleSecondOrderCompressionOutput();
+      return;
+    }
+    
     Message.executeByPhase("output");
-    if (state.exit) {
-      state.exit = false;
+    if (state.toolbox.exit) {
+      state.toolbox.exit = false;
       return;
     };
 
     const command = Command.getActive(true);
+
+    manageDynamicPromptLoadingOutput()
 
     const parsedOutput = parseRawOutput(globalThis.text);
 
@@ -1830,15 +2111,491 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     globalThis.text = text;
 
     unhideCards();
+
+    state.toolbox.inputOccurred = false;
   }
 
   // Utilities
+
+  function getLastCompressedLine() {
+    return getLastSummaryCard()[0]?.description?.split("\n").find(l => l.startsWith("Ending Line: ")).replace("Ending Line: ", "");
+  }
+
+  function getPartNumberFromCard(card) {
+    return parseInt(card.title.toLowerCase().split("part")[1]?.split(" - ")[0].trim());
+  }
+
+  function getLastSummaryCard(compressedOnly = false) {
+    let card;
+    let highest = 0;
+
+    for (c of storyCards) {
+      if (c.type.toLowerCase().trim() === "story summary") {
+        if (compressedOnly) {
+          if (!c.title.toLowerCase().includes("compressed")) continue;
+        }
+        const part = getPartNumberFromCard(c);
+        if (!isActuallyNaN(part) && part > highest) {
+          card = c;
+          highest = part;
+        }
+      }
+    }
+    return [card, highest];
+  }
+
+  function getStorySummary(asList = false, ignoreSecondOrder = false, onlySecondOrder = false) {
+    const summaryParts = [];
+    const ids = []
+
+    storyCards.forEach(c => {
+      if(c.type.toLowerCase() === "story summary") {
+        if (ignoreSecondOrder && c.title.toLowerCase().includes("compressed")) return;
+
+        if (onlySecondOrder && !c.title.toLowerCase().includes("compressed")) return;
+
+        const part = getPartNumberFromCard(c);
+
+        if (!isActuallyNaN(part)){
+          summaryParts[part] = c.entry;
+          ids[part] = c.id;
+        }
+      }
+    });
+
+    if (asList) return [summaryParts, ids];
+
+    if (summaryParts.length === 0) return "";
+
+    return summaryParts.reduce((agg, p) => {
+      if (typeof p === "string") {
+        agg = agg + "\n\n" + p.trim();
+      }
+      return agg;
+    }, "").trim() + "\n\n";
+  }
+
+  function getWordCount(str) {
+    if (typeof str === "string") return str.trim().split(/\s+/).length;
+    if (Array.isArray(str)) return str.reduce((agg,s) => agg += s.trim().split(/\s+/).length, 0);
+  }
+
+  function getCompressionSize() {
+    const compressionRatio = Settings.getValue("Context", "Compression Ratio");
+    return Math.min(Tool.OUTPUT_SIZE*1.33*4.95*compressionRatio, state.toolbox.maxChars - 750);
+  }
+
+  function getSecondOrderCompressionSize() {
+    const compressionRatio = Settings.getValue("Context", "Second-Order Compression Ratio");
+    return Math.min(Tool.OUTPUT_SIZE*1.33*4.95*compressionRatio, state.toolbox.maxChars - 750);
+  }
+
+  function getCompressionPrompt(compressibleContext) {
+    const compressionTarget = getCompressionSize();
+    const compressionRatio = Settings.getValue("Context", "Compression Ratio");
+
+    let sum = 0;
+    const toCompress = [];
+
+    for (let i = 0; i < compressibleContext.length; i++) {
+      if (sum + compressibleContext[i].length > compressionTarget) break;
+
+        sum += compressibleContext[i].length;
+        toCompress.push(compressibleContext[i]);
+    }
+
+    const wordCount = getWordCount(toCompress);
+    const wordTarget = Math.round((wordCount/compressionRatio)/5)*5;
+
+    for (let i = 0; i < toCompress.length; i++){
+      if (toCompress[i].trim()){
+        state.toolbox.latestCompressionStartLine = toCompress[i];
+        break;
+      }
+    }
+
+    for (let i = toCompress.length - 1; i >= 0; i--){
+      if (toCompress[i].trim()){
+        state.toolbox.latestCompressionEndLine = toCompress[i];
+        break;
+      }
+    }
+
+    state.toolbox.wasCompressionPrompted = true;
+    const summary = getStorySummary();
+    return `
+${summary 
+  ? `# Previous Story Summaries
+
+${summary.trim()}
+
+`
+  : ``
+}# Story to Summarize
+${toCompress.join("\n")}
+
+# Summarization Instructions
+## You are to create a succinct summary of the story paragraphs above, creating a complete and factual account of events.
+## Your target compression ratio is ${compressionRatio} : 1, meaning the ${wordCount} words in the story paragraphs above need to be reduced to ${wordTarget} words.
+## Include characters, events, and locations by name, but keep detail to a minimum. Never include descriptions, sensations, or direct dialogue.
+## You MUST include all critical story elements in your summary.
+## You MUST complete your summary in ${wordTarget} words.
+## Your highest priority goal is to keep your summary within the maximum word count of ${wordTarget}.
+
+`
+  }
+
+  function getSecondOrderCompressionPrompt() {
+    const compressionTarget = getSecondOrderCompressionSize();
+    const compressionRatio = Settings.getValue("Context", "Second-Order Compression Ratio");
+
+    let sum = 0;
+    const toCompress = [];
+
+    const [summaries, IDs] = getStorySummary(true, true);
+
+    state.toolbox.latestCompressionIDs = IDs;
+
+    let firstID;
+    let lastID;
+
+    for (let i = 0; i < summaries.length; i++) {
+      if (summaries[i]) sum += summaries[i].length;
+      if (summaries[i]) toCompress.push(summaries[i]);
+
+      if(summaries[i] && !firstID) firstID = IDs[i];
+
+      if (sum > compressionTarget) {
+        lastID = IDs[i];
+        break;
+      }
+    }
+
+    if (!lastID) lastID = IDs[IDs.length - 1];
+
+    const wordCount = getWordCount(toCompress);
+    const wordTarget = Math.round((wordCount/compressionRatio)/5)*5;
+
+    state.toolbox.latestCompressionFirstID = firstID;
+    state.toolbox.latestCompressionLastID = lastID;
+    
+    state.toolbox.wasSecondOrderCompressionPrompted = true;
+
+    const summary = getStorySummary(false, false, true);
+    return `
+${summary 
+  ? `
+# Previous Compressed Summaries
+
+${summary.trim()}
+
+`
+  : ``
+}# Story Summary to Compress
+${toCompress.join("\n")}
+
+# Summary Compression Instructions
+## You are to compress the story summary above, reducing it to the most condensed version possible while still maintaining an accurate account of events.
+## Your target compression ratio is ${compressionRatio} : 1, meaning the ${wordCount} words in the story summary above needs to be reduced to a more condensed summary of ${wordTarget} words.
+## Include characters, events, and locations by name, but remove absolutely all descriptions and details.
+## You MUST include all critical story elements in your compressed summary, and ONLY include critical story elements.
+## You MUST complete your compressed summary in ${wordTarget} words.
+## Your highest priority goal is to keep your output within the maximum word count of ${wordTarget}.
+
+`
+  }
+
+  function handleCompressionOutput() {
+    const part = getLastSummaryCard()[1] + 1;
+
+    const text = trimToLastEnding(globalThis.text.split("\n").filter(l => !l.trim().startsWith("#")).join("\n"));
+
+    const card = newCard(
+      `Part ${part} - Story Summary`,
+      "Story Summary",
+      text,
+      `> Below are the first and last lines of the story text compressed to create this summary. Do not edit the text in this area.
+
+> If you undo your story to before the Ending Line, or edit the Ending Line, please delete this card.
+
+Starting Line: ${state.toolbox.latestCompressionStartLine}
+
+Ending Line: ${state.toolbox.latestCompressionEndLine}`
+    );
+
+    globalThis.text = `${getBuffer()}${Settings.getValue("Tool", "Reminder Text") 
+      ?`📝 Story size exceeded context length. Older parts of the story were compressed into a story summary.
+📝 The summarized portion of the story starts on the line starting with "${state.toolbox.latestCompressionStartLine.trim().split(/\s+/).slice(0, 4).join(" ").replaceAll('"', "'")}..." and ends on the line ending with "...${state.toolbox.latestCompressionEndLine.trim().split(/\s+/).slice(-4).join(" ").replaceAll('"', "'")}"
+📝 The story summary can be viewed and edited in the ${card.title} story card.
+📝 Please do not undo to before the summarized portion, or edit the ending line. If you do, you may need to delete the corresponding summary card.
+📝 Improved Story Summarization can be disabled in the Context Settings story card. 
+📝 This output can be safely deleted.`
+      : `📝 Story summary created: ${card.title}`
+    }\n\n`;
+
+    state.toolbox.latestCompressionStartLine = null;
+    state.toolbox.latestCompressionEndLine = null;
+    state.toolbox.wasCompressionPrompted = false;
+    state.toolbox.inputOccurred = false;
+  }
+
+  function handleSecondOrderCompressionOutput() {
+    let part = getLastSummaryCard(true)[1] + 1;
+
+    const text = trimToLastEnding(globalThis.text.split("\n").filter(l => !l.trim().startsWith("#")).join("\n"));
+
+    const firstCard = storyCards.find(c => c.id === state.toolbox.latestCompressionFirstID);
+
+    const lastCard = storyCards.find(c => c.id === state.toolbox.latestCompressionLastID);
+
+    const startingLine = firstCard?.description?.split("\n").find(l => l.startsWith("Starting Line: ")).replace("Starting Line: ", "");
+
+    const endingLine = lastCard?.description?.split("\n").find(l => l.startsWith("Ending Line: ")).replace("Ending Line: ", "");
+
+    const startingIndex = Math.max(state.toolbox.latestCompressionIDs.indexOf(state.toolbox.latestCompressionFirstID), 0);
+
+    const endingIndex = minMax(state.toolbox.latestCompressionIDs.indexOf(state.toolbox.latestCompressionLastID),0, state.toolbox.latestCompressionIDs.length - 1);
+
+    for (let i = startingIndex; i <= endingIndex; i++) {
+      if (state.toolbox.latestCompressionIDs[i]) {
+        removeCard(null, null, c.id);
+      }
+    }
+
+    const card = newCard(
+      `Part ${part} - Compressed Story Summary`,
+      "Story Summary",
+      text,
+      `> Below are the first and last lines of the story compressed to create this summary. Do not edit the text in this area.
+
+> If you undo your story to before the Ending Line, or edit the Ending Line, please delete this card.
+
+Starting Line: ${startingLine}
+
+Ending Line: ${endingLine}`
+    );
+
+    for (let i = endingIndex + 1; i < state.toolbox.latestCompressionIDs.length ; i++) {
+      part++;
+      if (state.toolbox.latestCompressionIDs[i])
+        storyCards.find(c => c.id === state.toolbox.latestCompressionIDs[i]).title = `Part ${part} - Story Summary`
+    }
+
+    globalThis.text = `${getBuffer()}${Settings.getValue("Tool", "Reminder Text") 
+      ?`📝 Story size exceeded context length and there wasn't enough uncompressed context to create a new summary.
+📝 To create more space in context, multiple summaries have been combined
+📝 The compressed summary goes from the story line starting with "${startingLine?.trim().split(/\s+/).slice(0, 4).join(" ").replaceAll('"', "'")}..." to the story line ending with "...${endingLine.trim().split(/\s+/).slice(-4).join(" ").replaceAll('"', "'")}"
+📝 The story summary can be viewed and edited in the ${card.title} story card.
+📝 Please do not undo to before the summarized portion, or edit the ending line. If you do, you may need to delete the corresponding summary card.
+📝 Improved Story Summarization can be disabled in the Context Settings story card. 
+📝 This output can be safely deleted.`
+      : `📝 Story summary created: ${card.title}`
+    }\n\n`;
+
+    state.toolbox.latestCompressionFirstID = null;
+    state.toolbox.latestCompressionLastID = null;
+    state.toolbox.latestCompressionIDs = null;
+    state.toolbox.wasSecondOrderCompressionPrompted = false;
+    state.toolbox.inputOccurred = false;
+  }
+
+  function manageDynamicPromptLoadingOutput() {
+    if (Settings.getValue("Context", "AI Card Management")) {
+      let lines = globalThis.text.split("\n");
+
+      const toLoad = [];
+      const loaded = [];
+      const toUnload = [];
+      const unloaded = [];
+
+      lines.forEach((l, i) => {
+        if (l.trim().toLowerCase().startsWith("load:")) {
+          toLoad.push(...l.match(AFTER_COLON_REGEX)[0].split(", "));
+          lines[i] = "!!!";
+          if (i < lines.length - 2 && !lines[i+1]) lines[i+1] = "!!!";
+        }
+        if (l.trim().toLowerCase().startsWith("unload:")) {
+          toUnload.push(...l.match(AFTER_COLON_REGEX)[0].split(", "));
+          lines[i] = "!!!";
+          if (i < lines.length - 2 && !lines[i+1]) lines[i+1] = "!!!";
+        }
+      });
+
+      lines = lines.filter(l => l !== "!!!");
+
+      if (toLoad.length > 0 || toUnload.length > 0) {
+        let promptSequenceCard = getCard("Prompt Load Order", "Settings");
+
+        if (!promptSequenceCard) promptSequenceCard = newPromptSequenceCard();
+
+        const sequence = promptSequenceCard.entry.split("\n");
+
+        toUnload.forEach(x => {
+          x = x.trim();
+          
+          sequence.forEach((s, i) => {
+            const parts = s.split(" - ");
+            let status = parts[0]; 
+            let title = parts.slice(1).join(" - ");
+
+            if (status.length > 2) {
+              title = parts.join(" - ");
+              status = "N";
+            };
+
+            const isActive = status.toLowerCase().startsWith("y");
+
+            if (isActive){
+              const [name,,,owner] = partsFromTitle(deSymbol(title));
+              if (name === x || owner === x) {
+                unloaded.push(title);
+                sequence[i] = "N - " + title;
+              }
+            }
+          });
+        });
+
+        toLoad.forEach(x => {
+          x = x.trim();
+          sequence.forEach((s, i) => {
+            const parts = s.split(" - ");
+            let status = parts[0]; 
+            let title = parts.slice(1).join(" - ");
+
+            if (status.length > 2) {
+              title = parts.join(" - ");
+              status = "N";
+            };
+
+
+            const isActive = status.toLowerCase().startsWith("y");
+
+            if (!isActive){
+              const [name,,,owner] = partsFromTitle(deSymbol(title));
+
+              if (name === x || owner === x) {
+                loaded.push(title);
+                sequence[i] = "Y - " + title;
+              }
+            }
+          });
+        });
+
+        promptSequenceCard.entry = sequence.join("\n");
+      }
+
+      if (Settings.getValue("Context", "Prompt Load/Unload Notifications")){
+        if ((loaded.length > 0 || unloaded.length > 0) && lines[0]) lines.unshift("");
+        if ((loaded.length > 0 || unloaded.length > 0) && !state.toolbox.wasDynamicPromptLoadingTutorialDelivered) {
+          lines.unshift("📝 Prompt cards visible to the AI can be manually changed in the Prompt Load Order story card.");
+          state.toolbox.wasDynamicPromptLoadingTutorialDelivered = true;
+        }
+        if (unloaded.length > 0) lines.unshift("📤 Prompts Unloaded: " + unloaded.join(", "));
+        if (loaded.length > 0) lines.unshift("📥 Prompts Loaded: " + loaded.join(", "));
+        if (history[history.length - 1].type === "continue" && !history[history.length - 1].text.endsWith("\n"))
+          lines.unshift("");
+      }
+
+      globalThis.text = lines.join("\n");
+    }
+  }
+
+  function getDynamicPromptLoadingTopicList() {
+    const activeTopics = {};
+    const inactiveTopics = {};
+
+    state.toolbox.dynamicTypes.forEach(t => {
+      activeTopics[t] = [];
+      inactiveTopics[t] = [];
+    });
+
+    const sequence = getPromptSequence();
+
+    const protagonist = getProtagonist()?.toLowerCase();
+
+    storyCards.forEach(card => {
+      if(isPromptCard(card)) {
+        const [name, type, subtype, owner] = partsFromTitle(deSymbol(card.title));
+
+        if (name?.toLowerCase() === protagonist) return;
+
+        if (subtype?.toLowerCase() === "protagonist") return;
+
+        if (owner?.toLowerCase() === protagonist) return;
+
+        if (Array.isArray(activeTopics[type.toLowerCase()])) {
+          if (sequence.includes(deSymbol(card.title))) {
+            activeTopics[type.toLowerCase()].push(name);
+          } else {
+            inactiveTopics[type.toLowerCase()].push(name);
+          }
+        }
+      }
+    });
+    
+    const topicList = {
+      active: [],
+      inactive: []
+    };
+
+    state.toolbox.dynamicTypes.forEach(t => {
+      topicList.active.push(...activeTopics[t]);
+      topicList.inactive.push(...inactiveTopics[t]);
+    });
+
+    return topicList;
+  }
+
+  function getDynamicPromptLoadingInstructions() {
+    const topicList = getDynamicPromptLoadingTopicList();
+
+    if (topicList.active.length === 0 && topicList.inactive.length === 0) return "";
+
+    state.toolbox.noInactiveTurns ??= -1;
+    if (topicList.inactive.length === 0) state.toolbox.noInactiveTurns++;
+
+    return `
+${topicList.inactive.length > 0  
+  ? `# Available Lore Entries
+${topicList.inactive.join("\n")}
+
+# Entry Loading Instructions
+## You are responsible for loading lore entries that are relevant to the current scene.
+## You should also load any lore entry that is likely to become relevant to the scene soon.
+## Loading is done ad hoc. When a topic from the Available Lore Entries list becomes relevant, such as when a location is mentioned, or when a character enters the scene, create a load request on the next line. 
+## Load requests area always on their own line. Start the line with "Load:", followed by the name of the lore entry, e.g., "Load: Westbrook Mall"
+## You may only load entries from the Available Lore Entries list.
+`
+  : ``
+}
+${topicList.active.length > 0 
+  ?`# Loaded Lore Entries
+${topicList.active.join("\n")}
+
+${(state.toolbox.noInactiveTurns <= 0 && topicList.inactive.length === 0) 
+    ? `# Entry Unloading Instructions
+## All available lore entries are currently loaded.
+## You must unload lore entries that are not relevant to the current scene.
+## To unload lore entries, create comma-separated list at the top of your output. Start the line with "Unload:", followed by the list of entries, e.g., "Unload: Jane Doe, Greenville Department Store"
+## You may only unload entries from the Loaded Lore Entries list.
+## Unload regions and locations you are not currently within; unload characters and items not currently in the scene; unload events not currently taking place.`
+    : `# Entry Unloading Instructions
+## You are responsible for unloading lore entries that aren't relevant to the current scene.
+## To unload lore entries, create a separate line at the top of the output. Start the line with "Unload:", followed by the entry to unload, e.g., "Unload: Jane Woods". Multiple entries can be unloaded at once as a comma-separated list.
+## Only unload entries when they are no longer required to provide full context.
+## For most outputs, no change is required.`}
+`
+  :``
+}`
+  }
+
+
   function clearTempData(name, checkContinue) {
     const tempDataTools = ["Card", "Update", "Motive", "Reflect", "Use"];
     tempDataTools.forEach(t => {
       if (checkContinue) {
-        if (state[`temp${t}Data`]?.count === continueCount()) state[`temp${t}Data`] = null;
-      } else if (name !== t) state[`temp${t}Data`] = null;
+        if (state.toolbox[`temp${t}Data`]?.count === continueCount()) state.toolbox[`temp${t}Data`] = null;
+      } else if (name !== t) state.toolbox[`temp${t}Data`] = null;
     });
   }
 
@@ -2013,8 +2770,6 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
   }
 
   function createCardsFromPlaceholder(placeholder, type) {
-    const DEFAULT_CARD_TYPES = ["character", "class", "race", "location", "faction"];
-    const PROMPT_DESCRIPTION = "This is a Prompt card and should not have any Triggers. All cards with the Prompt type are placed a set distance back from the end of context and are seen by the AI all times.";
     try {
       if(!Array.isArray(placeholder) && (!placeholder.entry.trim().startsWith("[") || !placeholder.entry.trim().endsWith("]"))) throw new Error();
       
@@ -2022,13 +2777,13 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
         ? placeholder
         : parseJSONStringToCardTemplate(placeholder.entry.trim()) || [];
       modules.forEach(m => {
-          if (m.keys && DEFAULT_CARD_TYPES.includes(m.componentType?.toLowerCase()))
+          if (m.keys && state.toolbox.defaultCardTypes.includes(m.componentType?.toLowerCase()))
             m.componentType = m.componentType.toLowerCase();
           newCard(
               m.component || "Background",
               `${m.keys ? "" : "Prompt - "}${m.componentType ? `${m.componentType}` : `${type}`}` || "class",
               m.keys ? `{\n${deSymbol(m.component)}\n${m.entry}\n}`: m.entry,
-              m.keys ? "" : PROMPT_DESCRIPTION,
+              m.keys ? "" : state.toolbox.promptDescription,
               m.keys || ""
           );
       });
@@ -2037,7 +2792,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
         "Background",
         `Prompt - ${type}`,
         `> Background: ${placeholder.entry}`,
-        PROMPT_DESCRIPTION
+        state.toolbox.promptDescription
       );
     };
   }
@@ -2060,35 +2815,37 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     const command = Command.getActive();
 
     if (command.request === "reset") {
-      state.speed = null;
+      Settings.setSetting("Tool", "Story Speed Instructions", false) 
       return;
     }
 
-    const idx = findNearestFloat(SPEEDS, parseFloat(command.request));
+    const idx = findNearestFloat(state.toolbox.speeds, parseFloat(command.request));
 
     if (idx < 0) {
       return;
     }
 
-    state.speed = idx;
+    if (!Settings.getValue("Tool", "Story Speed Instructions")) Settings.setSetting("Tool", "Story Speed Instructions", true);
+
+    Settings.setSetting("Tool", "Speed Multiplier", state.toolbox.speeds[idx]);
   }
 
   function modifySpeedOutput() {
     const command = Command.getActive();
 
     if (command.request === "reset") {
-      globalThis.text = `${getBuffer()}${command.tool.sym} Narration speed has been reset. The AI will no longer receive narration speed prompting (unless you use /speed again).\n\n` + globalThis.text;
+      globalThis.text = `${getBuffer()}${command.tool.sym} Story Speed has been reset. The AI will no longer receive story speed instructions (unless you use /speed again).\n\n` + globalThis.text;
       return;    
     }
 
-    const idx = findNearestFloat(SPEEDS, parseFloat(command.request));
+    const idx = findNearestFloat(state.toolbox.speeds, parseFloat(command.request));
 
     if (idx < 0) {
-      globalThis.text = `${getBuffer()}${command.tool.sym} The request for /speed needs to be a number. Narration speed was not changed.\n\n` + globalThis.text;
+      globalThis.text = `${getBuffer()}${command.tool.sym} The request for /speed needs to be a number. Story speed was not changed.\n\n` + globalThis.text;
       return;
     }
 
-    globalThis.text = `${getBuffer()}${command.tool.sym} Narration speed set to ${SPEEDS[idx]}x\n\n` + globalThis.text;   
+    globalThis.text = `${getBuffer()}${command.tool.sym} Story speed set to ${state.toolbox.speeds[idx]}x\n\n` + globalThis.text;   
   }
 
   function findNearestFloat(floatArr, float) {
@@ -2131,16 +2888,16 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     const resources = findProtagCard("resources");
     const inventory = findProtagCard("inventory");
 
-    if (state.tempUseData?.count === continueCount()) {
-      if (state.tempUseData?.resourcesEntry) {
-        resources.entry = state.tempUseData.resourcesEntry;
+    if (state.toolbox.tempUseData?.count === continueCount()) {
+      if (state.toolbox.tempUseData?.resourcesEntry) {
+        resources.entry = state.toolbox.tempUseData.resourcesEntry;
       }
-      if (state.tempUseData?.inventoryEntry) {
-        inventory.entry = state.tempUseData.inventoryEntry;
+      if (state.toolbox.tempUseData?.inventoryEntry) {
+        inventory.entry = state.toolbox.tempUseData.inventoryEntry;
       }
     }
 
-    state.tempUseData = {
+    state.toolbox.tempUseData = {
       resourcesEntry: resources?.entry,
       resourcesId: resources.id,
       inventoryEntry: inventory?.entry,
@@ -2174,8 +2931,8 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
       || [];
 
     if (costs.length > 0 || gains.length > 0){
-      const resources = state.tempUseData.resourcesId ? getCard(null, null, state.tempUseData.resourcesId) : null;
-      const inventory = state.tempUseData.inventoryId ? getCard(null, null, state.tempUseData.inventoryId) : null;
+      const resources = state.toolbox.tempUseData.resourcesId ? getCard(null, null, state.toolbox.tempUseData.resourcesId) : null;
+      const inventory = state.toolbox.tempUseData.inventoryId ? getCard(null, null, state.toolbox.tempUseData.inventoryId) : null;
 
       if (!resources && !inventory) return;
 
@@ -2257,8 +3014,8 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
   function useContinue () {
     if (
-      !state.tempUseData 
-      || !(state.tempUseData.resourcesId || state.tempUseData.inventoryId)
+      !state.toolbox.tempUseData 
+      || !(state.toolbox.tempUseData.resourcesId || state.toolbox.tempUseData.inventoryId)
     ) return;
 
     const sym = Tool.getSym("Use");
@@ -2274,13 +3031,13 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
       text
         .split("\n")
         .filter(l => l.startsWith(sym))
-        .some(l => !state.tempUseData.useLines.includes(l))
+        .some(l => !state.toolbox.tempUseData.useLines.includes(l))
     ) {
-      const resources = state.tempUseData.resourcesId ? getCard(null, null, state.tempUseData.resourcesId) : null;
-      const inventory = state.tempUseData.inventoryId ? getCard(null, null, state.tempUseData.inventoryId) : null;
+      const resources = state.toolbox.tempUseData.resourcesId ? getCard(null, null, state.toolbox.tempUseData.resourcesId) : null;
+      const inventory = state.toolbox.tempUseData.inventoryId ? getCard(null, null, state.toolbox.tempUseData.inventoryId) : null;
 
-      if (resources) resources.entry = state.tempUseData.resourcesEntry;
-      if (inventory) inventory.entry = state.tempUseData.inventoryEntry;
+      if (resources) resources.entry = state.toolbox.tempUseData.resourcesEntry;
+      if (inventory) inventory.entry = state.toolbox.tempUseData.inventoryEntry;
 
       useCostsAndGains(text);
     }
@@ -2288,18 +3045,18 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
   function hideCard(card) {
     if (!card) return;
-    state.hiddenCards.push({title: card.title, type: card.type});
+    state.toolbox.hiddenCards.push({title: card.title, type: card.type});
   }
 
   function isCardHidden(card){
-    for (let c of state.hiddenCards) {
+    for (let c of state.toolbox.hiddenCards) {
       if (deSymbol(c.title) === deSymbol(card.title) && c.type === card.type) return true;
     };
     return false;
   }
 
   function unhideCards(){
-    state.hiddenCards = [];
+    state.toolbox.hiddenCards = [];
   }
 
   function isKeyValue(l) {
@@ -2312,19 +3069,26 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
   function assessAvailableContext() {
     if (!Settings.getValue("Misc", "Context Size Warning")) return;
+    if (state.toolbox.wasCompressionPrompted || state.toolbox.wasSecondOrderCompressionPrompted) return;
+    
     const tokensAvailable = Math.floor(info.maxChars/3.95);
     const tokensPresent = Math.ceil(globalThis.text.length/3.95);
     const actualMargin = tokensAvailable - tokensPresent;
     if (actualMargin < 0) {
       const frequency = Settings.getValue("Misc", "Context Warning Frequency");
       const count = continueCount();
-      if (state.lastContextWarning === undefined){
-        state.lastContextWarning = count;
+      if (state.toolbox.lastContextWarning === undefined){
+        state.toolbox.lastContextWarning = count;
 
         Message.postFromPool("prepend", "output", `${getBuffer()}⚠️ Context Size Warning - Tokens in Context: ${tokensPresent} / Context Length: ${tokensAvailable} ⚠️
-📝 For more details, read the Notes section of the Misc Settings story card.\n\n`);
-      } else if (state.lastContextWarning + frequency <= count) {
-        state.lastContextWarning = count;
+📝 For more details, read the Notes section of the Misc Settings story card.
+${Settings.getValue("Context", "Improved Story Summarization") 
+    ? state.toolbox.lastForcedCompression && continueCount() - 5 < state.toolbox.lastForcedCompression 
+      ? `📝 There wasn't enough story to create a new story summary. You may need to take additional action to avoid some story leaving context.`
+      : `📝 A story summary card will be created on your next "continue" action.` 
+    : `📝 You can keep more of your story in context by enabling Improved Story Summarization in the Context Settings story card.`}\n\n`);
+      } else if (state.toolbox.lastContextWarning + frequency <= count) {
+        state.toolbox.lastContextWarning = count;
 
         Message.postFromPool("prepend", "output", `${getBuffer()}⚠️ Context - ${tokensPresent} / ${tokensAvailable} ⚠️\n`);
       }
@@ -2335,11 +3099,8 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     const cardSet = filter
       ? storyCards.filter(c => filter(c))
       : [...storyCards];
-
     if (sort) cardSet.sort(c => sort(c));
-
     const randomCard = () => randomOnNoMatch ? cardSet[Math.floor(Math.random()*cardSet.length)] : undefined;
-
     if (!name) return randomCard();
 
     if (name.toLowerCase() === "random") return randomCard();
@@ -2382,6 +3143,12 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
   function ownerlessFilter(card) {
     const [,,,owner] = partsFromTitle(deSymbol(card.title));
     if (!owner) return true;
+    return false;
+  }
+
+  function ownerlessCharacterFilter(card) {
+    const [,type,,owner] = partsFromTitle(deSymbol(card.title));
+    if (type.toLowerCase() === "character" && !owner) return true;
     return false;
   }
 
@@ -2462,6 +3229,18 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 > Optimized Context: MUST BE OFF (Gameplay -> Story Generator -> Memory System)
 > Context Length: 4000+  (Gameplay -> Story Generator -> Memory System)
 
+🧩 Smart Context - Cards
+> AI Card Management lets the AI select which prompt cards are in context after each output by creating Load and Unload statements in its outputs.
+ >> Only Prompt story cards of specific types are managed by the AI
+ >> Managed types: World, Region, Location, Faction, Species, Character, Event, Lore, Quest, Item, Recipe
+ >> There is a one-turn delay to information visibility. If the AI requests a card, it will only see that card on its next output, after that request has been processed.
+
+🧩 Smart Context - Summaries
+> Improved Story Summarization creates summary cards from the oldest parts of the story when they overflow context.
+ >> Portions of the story that have been summarized are hidden from the AI and replaced with their summaries in order to save space in context.
+ >> Summaries use a full output from your current AI model, and only happen on "continue" actions when you are over your context limit.
+ >> Improved Story Summarization works best for context sizes of 6000+, and should NOT be used alongside AI Dungeon's native Auto Summarization feature. 
+
 🛠️ Tools
 > Tools are special scripted functions that offer a wide range of utility
 > Tools can be activated by entering slash commands into Do or Say, e.g., "/card"
@@ -2470,13 +3249,13 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 > For a more detailed look at the specifics of how each tool works, go to:
 https://github.com/FaraC-scripts/Toolbox
 
-${VISIBILITY_SYM} Visibility
-> Most tools output "${VISIBILITY_SYM} Visible to AI? (Y/N)" as their top line.
+${state.toolbox.visibilitySym} Visibility
+> Most tools output "${state.toolbox.visibilitySym} Visible to AI? (Y/N)" as their top line.
 > You can swap the Y/N at any time by editing the output's text.
 > If set to Y, the AI will be instructed to treat that output as side text and continue the story.
 > If set to N, the entire output will be excluded from context and not seen by the AI.
 
-🧩 Compound Requests
+🔗 Compound Requests
 > The Card, Update, Motive, and Reflect tools accept compound requests.
 > Compound requests have two parts, an identifier and instructions, separated by a semicolon.
 > The identifier is always required. The instructions are always optional.
@@ -2490,7 +3269,7 @@ ${VISIBILITY_SYM} Visibility
 > The number after the "-s" determines how often the tool activates. The tool also activates on the turn you schedule it.
 > Scheduling a command creates a 📅 Tool Schedule story card or adds a new line if one already exists. You can adjust or remove scheduled tools here.
 
-🗂️ Context Management
+🗂️ Context Elements
 > Toolbox adds a number of elements to the context sent to the AI every action
 > Each element can be turned on or off in the Context Settings story card
 ${Settings.getValue("Context", "Default Instructions") ? "🟢" : "🔴"} Default Instructions: a large set of generic writing guidelines - Tokens: ${Settings.SIZES.default_instructions}
@@ -2508,8 +3287,8 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
  >> Context Settings: manages the various elements Toolbox adds to context every turn
  >> Misc Settings: manages warning messages and output processing${storyCards.some(c => isPromptCard(c)) ? `
 
-📋️ Prompt Sequence
-> Your Prompt Sequence can be found and edited in your Story Cards, under Settings
+📋️ Prompt Load Order
+> Your Prompt Load Order can be found and edited in your Story Cards, under Settings
 > You can change the order your prompt cards are presented to the AI here
 > You can also hide individual prompt cards here by changing Y/N next to the card name`: ""}
 `
@@ -2539,8 +3318,10 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     const narrative = getComponentCard("Narrative", null, null, true);
     const scenario = getComponentCard("Scenario", null, null, true);
     const style = getComponentCard("Style", null, null, true);
-    const perspective = getValueFromCard(style, "Perspective").toLowerCase();
-    const tense = getValueFromCard(style, "Tense").toLowerCase();
+    let perspective = getValueFromCard(style, "Perspective");
+    if (perspective) perspective = perspective[0].toLowerCase() + perspective.slice(1);
+    let tense = getValueFromCard(style, "Tense");
+    if (tense) tense = tense[0].toLowerCase() + tense.slice(1);
     const backstory = getComponentCard("Backstory", null, null, true);
     const openingCircumstances = getValueFromCard(backstory, "Opening Circumstances");
     if (backstory?.entry.trim().length === 0) 
@@ -2572,7 +3353,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     const type = typeof card === "string"
       ? card
       : card?.type;
-    if (!type) return;
+    if (!type || typeof type !== "string") return;
     return type.trim().toLowerCase().startsWith("prompt");
   }
 
@@ -2631,9 +3412,9 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 
   function newPromptSequenceCard() {
     const [ids, titles] = getSequenceFromCards();
-    state.promptSequenceIds = ids;
+    state.toolbox.promptSequenceIds = ids;
     return newCard(
-      "📋️ Prompt Sequence",
+      "📋️ Prompt Load Order",
       "Settings",
       titles.map(s => "Y - " + s).join("\n"),
       `> Prompt Cards with "Y - " in front of their name will be inserted into context in the order shown above.\n> Prompt Cards with "N - " in front of their name will be hidden.\n> You may change the order here, and change Y/N`
@@ -2651,7 +3432,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
   }
 
   function getPromptSequence() {
-    let promptSequenceCard = getCard("Prompt Sequence", "Settings");
+    let promptSequenceCard = getCard("Prompt Load Order", "Settings");
 
     if (!promptSequenceCard) promptSequenceCard = newPromptSequenceCard();
 
@@ -2659,7 +3440,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
   }
 
   function updatePromptSequenceCard() {
-    let promptSequenceCard = getCard("Prompt Sequence", "Settings");
+    let promptSequenceCard = getCard("Prompt Load Order", "Settings");
     if (!promptSequenceCard) {
       newPromptSequenceCard();
       return;
@@ -2667,7 +3448,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     const lines = promptSequenceCard.entry.split("\n").filter(Boolean);
     const currentSequence = lines.map(l => l.replace(/^[YN] - /i, "").trim());
 
-    state.promptSequenceIds ??= currentSequence.map(s => storyCards.find(c => c.title === s)?.id || "!!!");
+    state.toolbox.promptSequenceIds ??= currentSequence.map(s => storyCards.find(c => c.title === s)?.id || "!!!");
 
     const [ids, titles] = getSequenceFromCards();
 
@@ -2675,9 +3456,9 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
       if (!titles.some(t => deSymbol(t) === deSymbol(s))){
         if (currentSequence.some(x => deSymbol(x) === deSymbol(titles[i]))){
           lines[i] = "!!!";
-          state.promptSequenceIds[i] = "!!!";
+          state.toolbox.promptSequenceIds[i] = "!!!";
         } else {
-          if(ids[i] === state.promptSequenceIds[i]){
+          if(ids[i] === state.toolbox.promptSequenceIds[i]){
             currentSequence[i] = titles[i];
             const prefix = lines[i]?.split(" - ")[0];
             lines[i] = `${prefix || "Y"} - ${titles[i]}`;
@@ -2689,14 +3470,14 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     });
 
     ids.forEach((id,i) => {
-      if (!state.promptSequenceIds.includes(id)){
+      if (!state.toolbox.promptSequenceIds.includes(id)){
         lines.push("Y - " + titles[i]);
-        state.promptSequenceIds.push(id);
+        state.toolbox.promptSequenceIds.push(id);
       }
     });
 
     promptSequenceCard.entry = lines.filter(l => l !== "!!!").join("\n");
-    state.promptSequenceIds = state.promptSequenceIds.filter(id => id !== "!!!");
+    state.toolbox.promptSequenceIds = state.toolbox.promptSequenceIds.filter(id => id !== "!!!");
   }
 
   function isPromptCardsInSequence(sequence) {
@@ -2758,7 +3539,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
   }
 
   function getNormalStoryCards(personification) {
-    const storyCardPrefix = globalThis.text.split("Recent Story:")[0] + (state.tempCard || "");
+    const storyCardPrefix = globalThis.text.split("Recent Story:")[0] + (state.toolbox.tempCard || "");
     const nonCards = storyCardPrefix.split("World Lore:\n")[0].trim();
     const cards = storyCardPrefix
       .split("World Lore:\n")[1]
@@ -2773,7 +3554,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
         return `${c}\n${c.startsWith("{") ? "}\n" : ""}`;
       })
       || [];
-    state.tempCard = null;
+    state.toolbox.tempCard = null;
     return [cards, nonCards];
   }
 
@@ -2843,7 +3624,9 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 
     const lines = globalThis.text.split("\n");
 
-    const motiveIdx = lines.findIndex(l => isKeyValue(l));
+    const exclusions = ["Load:", "Loading:", "Unload:", "Unloading:"];
+
+    const motiveIdx = lines.findIndex(l => isKeyValue(l) && !exclusions.some(e => l.startsWith(e)));
     if (motiveIdx < 0) return;
 
     const motive = lines[motiveIdx].replaceAll("*", "");
@@ -2852,24 +3635,25 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 
     const name = motive?.match(BEFORE_COLON_REGEX)[0]?.replaceAll("*", "");
 
-    let card = state.tempMotiveData?.id 
-      ? getCard(null, null, state.tempMotiveData.id)
-      : nearestCardMatch(name, ownerlessFilter, mindSort, false);
+    let card = state.toolbox.tempMotiveData?.id 
+      ? getCard(null, null, state.toolbox.tempMotiveData.id)
+      : nearestCardMatch(name, ownerlessCharacterFilter, mindSort, false)
+        || nearestCardMatch(name, ownerlessFilter, mindSort, false);
 
     if (!card) card = newCard(
       `🧠 ${name} - Mind`,
       "Prompt - Mind",
       "",
-      PROMPT_DESCRIPTION
+      state.toolbox.promptDescription
     )
     const cardName = card?.title;
 
     globalThis.text = (`${getBuffer()}${sym} ${motive?.trim().replaceAll("*", "")} ${Settings.getValue("Tool", "Reminder Text") ? `\n📝 This motive has been recorded in: ${cardName}` : ""}\n\n` + lines.join("\n")).replace(/\n{3,}/g, '\n\n'); 
 
-    if (state.tempMotiveData?.count === continueCount())
+    if (state.toolbox.tempMotiveData?.count === continueCount())
       removeLatestAddendum("Motive", card.id);
       
-    state.tempMotiveData = {
+    state.toolbox.tempMotiveData = {
       motive: motive,
       id: card.id,
       count: continueCount()
@@ -2879,7 +3663,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
   }
 
   function motiveContinue(){
-    const card = getCard(null, null, state.tempMotiveData?.id);
+    const card = getCard(null, null, state.toolbox.tempMotiveData?.id);
     if (!card) return;
 
     const sym = Tool.getSym("Motive");
@@ -2896,13 +3680,13 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     const motive = lines.find(l => l.trim().startsWith(sym))
     const motiveText = motive.match(AFTER_COLON_REGEX)[0]?.trim();
 
-    const tempMotiveText = state.tempMotiveData.motive.match(AFTER_COLON_REGEX)[0]?.trim();
+    const tempMotiveText = state.toolbox.tempMotiveData.motive.match(AFTER_COLON_REGEX)[0]?.trim();
 
     if (motiveText === tempMotiveText) return;
 
-    removeLatestAddendum("Motive", state.tempMotiveData.id);
+    removeLatestAddendum("Motive", state.toolbox.tempMotiveData.id);
 
-    addAddendumToCards(motive, "Motive", state.tempMotiveData.id, -1);
+    addAddendumToCards(motive, "Motive", state.toolbox.tempMotiveData.id, -1);
   }
 
   function decorateReflect(){
@@ -2910,7 +3694,10 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 
     const lines = globalThis.text.split("\n");
 
-    const reflectionIdx = lines.findIndex(l => isKeyValue(l));
+    const exclusions = ["Load:", "Loading:", "Unload:", "Unloading:"];
+
+    const reflectionIdx = lines.findIndex(l => isKeyValue(l) && !exclusions.some(e => l.startsWith(e)));
+
     if (reflectionIdx < 0) return;
 
     const reflection = lines[reflectionIdx].replaceAll("*", "");
@@ -2918,33 +3705,37 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     lines.splice(reflectionIdx, 1);
 
     const name = reflection.match(BEFORE_COLON_REGEX)[0];
-    let card = nearestCardMatch(name, ownerlessFilter, mindSort, false);
+    
+    let card = state.toolbox.tempMotiveData?.id 
+      ? getCard(null, null, state.toolbox.tempMotiveData.id)
+      : nearestCardMatch(name, ownerlessCharacterFilter, mindSort, false)
+        || nearestCardMatch(name, ownerlessFilter, mindSort, false);
+
     if (!card) card = newCard(
       `🧠 ${name} - Mind`,
       "Prompt - Mind",
       "",
-      PROMPT_DESCRIPTION
+      state.toolbox.promptDescription
     )
     const cardName = card?.title;
 
     globalThis.text = (`${getBuffer()}${sym} ${reflection?.trim()} ${Settings.getValue("Tool", "Reminder Text") ? `\n📝 This reflection has been recorded in: ${cardName}` : ""}\n\n` + lines.join("\n")).replace(/\n{3,}/g, '\n\n');
 
-    if (state.tempReflectData?.count === continueCount())
+    if (state.toolbox.tempReflectData?.count === continueCount()){
       removeLatestAddendum("Reflect", card.id);
+    }
 
-    state.tempReflectData = {
+    state.toolbox.tempReflectData = {
       reflection: reflection,
       id: card.id,
       count: continueCount()
     };
-
     addAddendumToCards(reflection, "Reflect", card.id);
   }
 
   function reflectContinue(){
-    const card = getCard(null, null, state.tempReflectData?.id);
+    const card = getCard(null, null, state.toolbox.tempReflectData?.id);
     if (!card) return;
-
     const sym = Tool.getSym("Reflect");
     let text;
     
@@ -2956,15 +3747,15 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 
     const lines = text.split("\n");
 
-    const reflectionText = lines.find(l => l.trim().startsWith(sym)).match(AFTER_COLON_REGEX)[0]?.trim();
+    const reflection = lines.find(l => l.trim().startsWith(sym));
 
-    const tempReflectionText = state.tempReflectData.reflection.match(AFTER_COLON_REGEX)[0]?.trim();
+    const reflectionText = reflection.match(AFTER_COLON_REGEX)[0]?.trim();
+
+    const tempReflectionText = state.toolbox.tempReflectData.reflection.match(AFTER_COLON_REGEX)[0]?.trim();
 
     if (reflectionText === tempReflectionText) return;
-
-    removeLatestAddendum("Reflect", state.tempReflectData.id);
-
-    addAddendumToCards(state.tempReflectData.reflection, "Reflect", state.tempReflectData.id, -1);
+    removeLatestAddendum("Reflect", state.toolbox.tempReflectData.id);
+    addAddendumToCards(reflection, "Reflect", state.toolbox.tempReflectData.id, -1);
   }
 
   function removeLatestAddendum(toolName, cardId) {
@@ -2978,12 +3769,12 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     }
     const typeLine = typeLines[type];
 
-    state[type + "Log"]?.[card.id]?.pop();
+    state.toolbox[type + "Log"]?.[card.id]?.pop();
 
     const lines = card.entry.split("\n");
 
     for(let i = lines.length - 1; i >= 0; i--){
-      if(lines[i].match(BEFORE_COLON_REGEX)[0].toLowerCase().trim().endsWith(typeLine)){
+      if(lines[i].match(BEFORE_COLON_REGEX)[0].trim().endsWith(typeLine)){
         lines.splice(i, 1);
         break;
       }
@@ -2995,7 +3786,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
   function addAddendumToCards(addendum, toolName, cardId, continueOffset = 0) {
     const type = toolName.toLowerCase();
     const typeLog = type + "Log"
-    state[typeLog] ??= {};
+    state.toolbox[typeLog] ??= {};
     const sym = Tool.getSym(toolName);
     
     if (!addendum) return;
@@ -3024,10 +3815,11 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
       };
 
       if (!card.entry.includes(addendumText)) {
-        const addendumLog = state[typeLog][card.id] || [];
+        const addendumLog = state.toolbox[typeLog][card.id] || [];
         addendumLog.push(continueCount() + continueOffset);
         
         card.entry = card.entry.replaceAll(`Current ${typeLine}:`, `Prior ${typeLine}:`);
+
         const cap = Settings.getValue("Tool", toolName + " Cap");
         if (cap) {
           const lines = card.entry.split("\n");
@@ -3042,7 +3834,6 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
             };
           };
           card.entry = lines.filter(l => l !== "!!!").join("\n");
-
         };
         
         const addendumLine = `${isPrompt ? "> " : ""}Current ${typeLine}: ${addendumText}`;
@@ -3051,7 +3842,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 
         if (endingBracket) card.entry += "\n}";
 
-        state[typeLog][card.id] = addendumLog;
+        state.toolbox[typeLog][card.id] = addendumLog;
       } 
       return;
     }
@@ -3059,18 +3850,19 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
  
   function removeFaded(type) {
     const typeLog = type + "Log"
-    state[typeLog] ??= {};
-    const loggedCards = Object.keys(state[typeLog]);
+    state.toolbox[typeLog] ??= {};
+    const loggedCards = Object.keys(state.toolbox[typeLog]);
     if (loggedCards.length < 1) return;
     const upperType = type[0].toUpperCase() + type.slice(1);
     const fade = Settings.getValue("Tool", upperType + " Fade");
+
     if (fade < 1) return;
     const typeLines = {
       "motive": "Motive",
       "reflect": "Thoughts"
     }
     loggedCards.forEach(id => {
-      const addendumLog = state[typeLog][id];
+      const addendumLog = [...state.toolbox[typeLog][id]];
       if (isActuallyNaN(addendumLog[0])) return;
 
       const card = storyCards.find(c => c.id === id);
@@ -3085,7 +3877,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
           const idx = lines.findIndex(l => l.match(BEFORE_COLON_REGEX)[0]?.endsWith(typeLine));
           if(idx >= 0)
             card.entry = [...lines.slice(0, idx), ...lines.slice(idx + 1)].join("\n");
-          addendumLog.unshift();
+          state.toolbox[typeLog][id].shift();
         }
       });
     })
@@ -3095,23 +3887,34 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     const data = {};
     const lines = text.split("\n");
     const entryLines = lines
-      .filter(l=>![...BASIC_FILTERS, Tool.getSym("card")].some(f=>l.trim().startsWith(f)));
-    data.title = lines.find(l=>l.includes("Title:"))?.split("Title:")[1].trim() || "Untitled";
+      .filter(l=>![...state.toolbox.basicFilters, Tool.getSym("card")].some(f=>l.trim().startsWith(f)));
 
-    data.type = entryLines
-        .find(l=>l.includes("Type:"))
-        ?.split("Type:")[1]
-        .trim()
-        || "Uncategorized"
+    const title = lines.find(l=>l.includes("Title:"))?.split("Title:")[1].trim() || "Untitled";
+    const type = entryLines
+      .find(l=>l.includes("Type:"))
+      ?.split("Type:")[1]
+      .trim();
+    const category = entryLines
+      .find(l=>l.includes("Category:"))
+      ?.split("Category:")[1]
+      .trim()
+      || "Uncategorized";
+    const sym = state.toolbox.cardSymbols[type.toLowerCase()];
+
+    data.title = type 
+      ? `${sym ? `${sym} ` : ``}${title} - ${type}`
+      : title;
+
+    data.type = category;
 
     if (isStoryCard) {
-      if (DEFAULT_CARD_TYPES.includes(data.type.toLowerCase())) data.type = data.type.toLowerCase();
+      if (state.toolbox.defaultCardTypes.includes(data.type.toLowerCase())) data.type = data.type.toLowerCase();
     } else {
       data.type = `Prompt - ${data.type}`;  
     };
 
     data.entry = entryLines
-      .filter(l => Boolean && !["Title:", "Type:", "Triggers:"].some(x => l.startsWith(x)))
+      .filter(l => Boolean && !["Title:", "Category:", "Type:", "Triggers:"].some(x => l.startsWith(x)))
       .join("\n");
 
     if (isStoryCard) data.entry = `{\n${data.title} - ${data.type[0].toUpperCase() + data.type.slice(1)}\n${data.entry.trim()}\n}`;
@@ -3139,7 +3942,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
       data.entry = finalLines.join("\n");
     };
     
-    data.description = isStoryCard ? "" : PROMPT_DESCRIPTION;
+    data.description = isStoryCard ? "" : state.toolbox.promptDescription;
 
     return data;
   }
@@ -3170,8 +3973,8 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 📝 If you edit the text below and take a forward action (Do, Say, Continue) that card will be updated to match the edited text.\n` : ""}
 ${globalThis.text}`;
 
-    if (state.tempCardData?.count === continueCount()) {
-      removeCard(null, null, state.tempCardData.id)
+    if (state.toolbox.tempCardData?.count === continueCount()) {
+      removeCard(null, null, state.toolbox.tempCardData.id)
     }
 
     const card = newCard(
@@ -3182,13 +3985,13 @@ ${globalThis.text}`;
       triggers
     );
 
-    state.tempCardData = {id: card.id, count: continueCount()};
+    state.toolbox.tempCardData = {id: card.id, count: continueCount()};
 
     updatePromptSequenceCard();
   }
   
   function cardContinue() {
-    if (!state.tempCardData) return;
+    if (!state.toolbox.tempCardData) return;
 
     let text;
     let command;
@@ -3219,7 +4022,7 @@ ${globalThis.text}`;
           .trim()
       : "";
 
-    const card = getCard(null, null, state.tempCardData.id);
+    const card = getCard(null, null, state.toolbox.tempCardData.id);
 
     card.title = data.title;
     card.type = data.type;
@@ -3254,7 +4057,7 @@ ${globalThis.text}`;
       .split("\n")
       .map(l => l.trim())
       .filter(l => Boolean 
-        && ![...BASIC_FILTERS, Tool.getSym("Update")].some(f=>l.trim().startsWith(f))
+        && ![...state.toolbox.basicFilters, Tool.getSym("Update")].some(f=>l.trim().startsWith(f))
       ))
 
     const title = lines.find(l => l.trim().startsWith("Title:")).match(AFTER_COLON_REGEX)[0].trim();
@@ -3282,10 +4085,10 @@ ${globalThis.text}`;
   }
 
   function restoreTempCard(){
-    if (!state.tempUpdateData) return;
+    if (!state.toolbox.tempUpdateData) return;
 
-    const card = getCard(null, null, state.tempUpdateData.data.id);
-    const data = state.tempUpdateData.data;
+    const card = getCard(null, null, state.toolbox.tempUpdateData.data.id);
+    const data = state.toolbox.tempUpdateData.data;
 
     card.title = data.title;
     card.type = data.type;
@@ -3293,13 +4096,13 @@ ${globalThis.text}`;
   }
 
   function finishUpdateOutput() {
-    const card = getCard(null, null, state.updateCardId || state.tempUpdateData.data.id);
-    state.updateCardId = null;
+    const card = getCard(null, null, state.toolbox.updateCardId || state.toolbox.tempUpdateData.data.id);
+    state.toolbox.updateCardId = null;
 
-    if (state.tempUpdateData?.count === continueCount())
+    if (state.toolbox.tempUpdateData?.count === continueCount())
       restoreTempCard();
 
-    state.tempUpdateData = {
+    state.toolbox.tempUpdateData = {
       data: {
         id: card.id,
         title: card.title,
@@ -3362,7 +4165,7 @@ ${text}`;
     
     restoreTempCard();
     if (!restore) {
-      updateToolCard(getCard(null, null, state.tempUpdateData?.data.id), text);
+      updateToolCard(getCard(null, null, state.toolbox.tempUpdateData?.data.id), text);
     }
   }
 
@@ -3489,7 +4292,7 @@ ${text}`;
 
   function setCYOAChoice() {
     const regex1 = /^(?:>\s*You(?:\s+say,)?\s*)?(.+)$/;
-    const input = globalThis.text.replaceAll("\n", "").match(regex1)?.[1].replace("> ", "") || "";
+    const input = globalThis.text.replaceAll("\n", "").match(regex1)?.[1].replace("> ", "").replaceAll('"', "").trim() || "";
     const regex2 = new RegExp(`^${input[1]}\\.\\s*(.*)$`, 'mi')
     globalThis.text = "[" + (history[history.length - 1].text.match(regex2)?.[1] || "Continue the story.") + "]";
   }
@@ -3622,36 +4425,21 @@ ${storyCards
     return Math.max(lines.length - 1 - point, 0);
   }
 
-  function getFilteredLinesFromHistory(start = 0, additionalFilters = [], hideCards){
-    let idx;
+  function getFilteredLinesFromHistory(filterBySum = true, start = 0, additionalFilters = [], hideCards){
+    let idx = 0;
     let sum = 0;
-    for (let i = history.length - 1; i >= 0; i--){
-      if (sum >= state.maxChars) break;
-      sum += history[i].text.length;
-      idx = i;
-    };
+    if (filterBySum) {
+      for (let i = history.length - 1; i >= 0; i--){
+        if (sum >= state.toolbox.maxChars) break;
+        sum += history[i].text.length;
+        idx = i;
+      };
+    }
     start = Math.max(start, idx - 10);
 
-    let cardLines = [];
-
-    if (!hideCards) {
-      storyCards.forEach(c=>{
-          if (c.type === "Stored Context") {
-              const int = Math.max(parseInt(c.title.split(" - ").slice(-1)[0]), 0);
-              if (!isActuallyNaN(int)) {
-                  cardLines[int] = c.entry;
-              };
-          };
-      });
-
-      cardLines = cardLines.filter(Boolean).reduce((acc, c) => {
-        acc.push(...c.split("\n"));
-        return acc;
-      }, []);
-      
-    };
-    const filters = [...BASIC_FILTERS, "Recent Story:", ...getFilters(), ...additionalFilters];
+    const filters = [...state.toolbox.basicFilters, "Recent Story:", ...getFilters(), ...additionalFilters];
     const sceneInstructionFadeDistance = Settings.getValue("Tool", "Scene Instruction Fade");
+
     let sceneInstructionFadePoint = history.length - 1;
     if (sceneInstructionFadeDistance < 1) {
       sceneInstructionFadePoint = 0;
@@ -3665,9 +4453,7 @@ ${storyCards
         }
       }
   }
-    
     return [
-    ...cardLines,
     ...history
       .slice(start)
       .map((h, i) => {
@@ -3675,10 +4461,10 @@ ${storyCards
         if (
           h.type === "continue"
           && lines.length >= 2
-          && lines.some(l =>l.startsWith(VISIBILITY_SYM))
+          && lines.some(l =>l.startsWith(state.toolbox.visibilitySym))
         ) {
           if (
-            lines.find(l => l.startsWith(VISIBILITY_SYM))
+            lines.find(l => l.startsWith(state.toolbox.visibilitySym))
               .match(AFTER_COLON_REGEX)[0]
               ?.toLowerCase()
               .trim()
@@ -3692,9 +4478,11 @@ ${storyCards
         return h.text;
       })
       .reduce((acc, t, i) => {
-        i < sceneInstructionFadePoint
-          ? acc.push(...t.split("\n").filter(l => !l.trim().startsWith("[Scene instructions:")))
-          : acc.push(...t.split("\n"));
+        if (i < sceneInstructionFadePoint) {
+          acc.push(...t.split("\n").filter(l => !l.trim().startsWith("[Scene instructions:")));
+        } else {
+          acc.push(...t.split("\n"));
+        }
         return acc;
       }, [])
       .filter((l, i, arr) => {
@@ -3787,7 +4575,8 @@ ${storyCards
         };
       };
     }
-    storyCards.splice(idx, 1);
+
+    if (idx >= 0) removeStoryCard(idx);
   }
 
   function isAbbreviationPeriod(text, periodIndex) {
@@ -3797,7 +4586,7 @@ ${storyCards
       }
       start++;
       const token = text.substring(start, periodIndex + 1);
-      return ABBREVIATIONS.has(token.toLowerCase());
+      return state.toolbox.abbreviations.includes(token.toLowerCase());
   }
 
   function isDecimalPeriod(text, idx) {
