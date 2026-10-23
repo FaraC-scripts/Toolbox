@@ -9,9 +9,10 @@ If you'd like to create a custom adventure and play it with Toolbox, check out t
 [https://play.aidungeon.com/scenario/Kj-pypp8vkwc/universal-generator?share=true&published=true](https://play.aidungeon.com/scenario/Kj-pypp8vkwc/universal-generator?share=true&published=true)
 
 __📕 User Guide 📕__
+- [🧩 Smart Context](#Smart-Context)
 - [🛠️ Tools](#Tools)
 - [👁️‍🗨️ Tool Visibility](#Tool-Visibility)
-- [🧩 Compound Requests](#Compound-Requests)
+- [🔗 Compound Requests](#Compound-Requests)
 - [🔎 Detailed Tool List](#Detailed-Tool-List)
 - [🗂️ Context Management](#Context-Management)
 - [⚙️ Toolbox Settings](#Toolbox-Settings)
@@ -26,6 +27,20 @@ __📥 Installation Guide 📥__
 - [🎉 Use and Acknowledgments](#Use-and-Acknowledgments)
 
 # 📕 User Guide 📕
+
+<h2 id="Smart-Context"><strong>🧩 Smart Context 🧩</strong></h2>
+
+__🧩 Smart Context - Cards__
+- AI Card Management lets the AI select which prompt cards are in context after each output by creating Load and Unload statements in its outputs.
+- Only Prompt story cards of specific types are managed by the AI
+- Managed types: World, Region, Location, Faction, Species, Character, Event, Lore, Quest, Item, Recipe
+- There is a one-turn delay to information visibility. If the AI requests a card, it will only see that card on its next output, after that request has been processed.
+
+__🧩 Smart Context - Summaries__
+- Improved Story Summarization creates summary cards from the oldest parts of the story when they overflow context.
+- Portions of the story that have been summarized are hidden from the AI and replaced with their summaries in order to save space in context.
+- Summaries use a full output from your current AI model, and only happen on "continue" actions when you are over your context limit.
+- Improved Story Summarization works best for context sizes of 6000+, and should NOT be used alongside AI Dungeon's native Auto Summarization feature. 
 
 <h2 id="Tools"><strong>🛠️ Tools 🛠️</strong></h2>
 
@@ -74,7 +89,7 @@ If you have a story card or prompt card with _Character (Protagonist)_ in the ti
 
 The final line, the directive to continue the story, will only be added to context for 1-2 outputs after the tool output.
 
-<h2 id="Compound-Requests"><strong>🧩 Compound Requests 🧩</strong></h2>
+<h2 id="Compound-Requests"><strong>🔗 Compound Requests 🔗</strong></h2>
 The __Update__, __Motive__, and __Reflect__ tools accept __compound requests__.
 
 __Compound requests__ have two parts, an __identifier__ and __instructions__, separated by a semicolon.
