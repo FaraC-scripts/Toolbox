@@ -9,12 +9,12 @@ If you'd like to create a custom adventure and play it with Toolbox, check out t
 [https://play.aidungeon.com/scenario/Kj-pypp8vkwc/universal-generator?share=true&published=true](https://play.aidungeon.com/scenario/Kj-pypp8vkwc/universal-generator?share=true&published=true)
 
 __📕 User Guide 📕__
-- [🧩 Smart Context](#Smart-Context)
 - [🛠️ Tools](#Tools)
 - [👁️‍🗨️ Tool Visibility](#Tool-Visibility)
 - [🔗 Compound Requests](#Compound-Requests)
 - [🔎 Detailed Tool List](#Detailed-Tool-List)
 - [🗂️ Context Management](#Context-Management)
+- [🧩 Smart Context](#Smart-Context)
 - [⚙️ Toolbox Settings](#Toolbox-Settings)
 - [📋️ Prompt Sequence](#Prompt-Sequence)
 - [📅 Tool Scheduling and Automation](#Tool-Scheduling-and-Automation)
@@ -27,20 +27,6 @@ __📥 Installation Guide 📥__
 - [🎉 Use and Acknowledgments](#Use-and-Acknowledgments)
 
 # 📕 User Guide 📕
-
-<h2 id="Smart-Context"><strong>🧩 Smart Context 🧩</strong></h2>
-
-__🧩 Smart Context - Cards__
-- AI Card Management lets the AI select which prompt cards are in context after each output by creating Load and Unload statements in its outputs.
-- Only Prompt story cards of specific types are managed by the AI
-- Managed types: World, Region, Location, Faction, Species, Character, Event, Lore, Quest, Item, Recipe
-- There is a one-turn delay to information visibility. If the AI requests a card, it will only see that card on its next output, after that request has been processed.
-
-__🧩 Smart Context - Summaries__
-- Improved Story Summarization creates summary cards from the oldest parts of the story when they overflow context.
-- Portions of the story that have been summarized are hidden from the AI and replaced with their summaries in order to save space in context.
-- Summaries use a full output from your current AI model, and only happen on "continue" actions when you are over your context limit.
-- Improved Story Summarization works best for context sizes of 6000+, and should NOT be used alongside AI Dungeon's native Auto Summarization feature. 
 
 <h2 id="Tools"><strong>🛠️ Tools 🛠️</strong></h2>
 
@@ -582,6 +568,20 @@ Toolbox adds a number of elements to the context sent to the AI every action. Ea
   - __Tool Settings:__ manages how tools function, with both general and tool-specific settings
   - __Context Settings:__ manages the various elements Toolbox adds to context every turn
   - __Misc Settings:__ manages warning messages and output processing
+
+<h2 id="Smart-Context"><strong>🧩 Smart Context 🧩</strong></h2>
+
+__🧩 Smart Context - Cards__
+- AI Card Management lets the AI select which prompt cards are in context after each output by creating Load and Unload statements in its outputs.
+- Only Prompt story cards of specific types are managed by the AI
+- Managed types: World, Region, Location, Faction, Species, Character, Event, Lore, Quest, Item, Recipe
+- There is a one-turn delay to information visibility. If the AI requests a card, it will only see that card on its next output, after that request has been processed.
+
+__🧩 Smart Context - Summaries__
+- Improved Story Summarization creates summary cards from the oldest parts of the story when they overflow context.
+- Portions of the story that have been summarized are hidden from the AI and replaced with their summaries in order to save space in context.
+- Summaries use a full output from your current AI model, and only happen on "continue" actions when you are over your context limit.
+- Improved Story Summarization works best for context sizes of 6000+, and should NOT be used alongside AI Dungeon's native Auto Summarization feature. 
     
 ### Tool Settings
 __General__
