@@ -2,7 +2,7 @@
 // Feel free to use this script however you'd like. Enjoy.
 // For more information on Toolbox, visit: https://github.com/FaraC-scripts/Toolbox/
 function toolbox(phase){
-  const VERSION = 3.3;
+  const VERSION = 3.31;
   state.toolbox ??= {};
 
   // When using Toolbox in your scenario, the only object you should change is state.toolbox.defaultSettings. Do not change any of the text in quotations; only change numbers and true|false values.
@@ -29,7 +29,8 @@ function toolbox(phase){
       "Motive Fade": 5, // After how many actions a motive is automatically removed. Set to 0 or -1 for never.
       "Reflect Size": 35, // The number of words used by the Reflect tool's outputs.
       "Reflect Cap": 3, // The number of reflections each character is allowed before old ones get removed.,
-      "Reflect Fade": 10 // After how many actions a reflection is automatically removed. Set to 0 or -1 for never
+      "Reflect Fade": 10, // After how many actions a reflection is automatically removed. Set to 0 or -1 for never.
+
     },
     "Context": {
       "AI Card Management": false, // Whether AI Card Management is enabled.
@@ -61,6 +62,13 @@ function toolbox(phase){
     }
   }
 
+  if (state.toolbox.version !== VERSION && state.toolbox.defaultSettingsOverride) {
+    for (const [key, value] of Object.entries(state.toolbox.defaultSettingsOverride)){
+      for (const [k, v] of Object.entries(value)){
+        state.toolbox.defaultOptions[key][k] = v;
+      }
+    }
+  }
   // Past here, the code is largely undocumented and disorganized. Proceed at your peril.
 
   if (state.toolbox.version !== VERSION) state.toolbox.truthyWords = ["y", "yes", "true", "on"];
@@ -191,7 +199,7 @@ function toolbox(phase){
     "bans": "🚫"
   };
 
-  if (state.toolbox.version !== VERSION) state.toolbox.dynamicTypes = ["world", "region", "location", "character", "event", "lore", "quest", "item", "faction", "species", "recipe"];
+  if (state.toolbox.version !== VERSION) state.toolbox.dynamicTypes = ["world", "region", "location", "character", "mind", "event", "lore", "quest", "item", "faction", "species", "recipe"];
 
   const VISIBLE_ASIDE_ENDER = (() => {
     const [perspective, tense] = getPerspectiveAndTense();
@@ -879,7 +887,6 @@ Output Processing
         message.funcString = message.funcString.replaceAll(`\${${k}}`, placeholders[k]);
         message.args = message.args.map(a => a.replaceAll(`\${${k}}`, placeholders[k]));
       });
-
       const messages = this.getListByPhase(phase);
       messages.queue.push(message);
     }
@@ -1863,11 +1870,12 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
   }
 
   function assembleContext() {
+    if (!state.toolbox.inputOccurred) Message.resetState();
+    
     if (!state.toolbox.initialized) {
       initializeToolbox();
     };
 
-    if (!state.toolbox.inputOccurred) Message.resetState();
     state.toolbox.maxChars = info.maxChars;
     removeFaded("motive");
     removeFaded("reflect");
@@ -2297,6 +2305,7 @@ ${toCompress.join("\n")}
 # Summary Compression Instructions
 ## You are to compress the story summary above, reducing it to the most condensed version possible while still maintaining an accurate account of events.
 ## Your target compression ratio is ${compressionRatio} : 1, meaning the ${wordCount} words in the story summary above needs to be reduced to a more condensed summary of ${wordTarget} words.
+## Write the summary in normal story paragraph format.
 ## Include characters, events, and locations by name, but remove absolutely all descriptions and details.
 ## You MUST include all critical story elements in your compressed summary, and ONLY include critical story elements.
 ## You MUST complete your compressed summary in ${wordTarget} words.
