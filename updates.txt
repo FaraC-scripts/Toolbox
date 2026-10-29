@@ -1,3 +1,6 @@
+Toolbox Update 3.34
+- Fixed an issue where Toolbox was not working properly when added to certain scenarios (ones without placeholders and/or story cards).
+
 Toolbox Update 3.33
 - Made it so that the /card command only deletes the previously-rolled card on a retry if the request is identical to the original request. This is to mitigate certain circumstances where created cards might be accidentally deleted.
 - Added line-tracking metadata to summary cards to serve as a redundancy in the case of several fail cases, including the ending line of a summary being edited or duplicated.
