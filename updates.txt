@@ -1,3 +1,11 @@
+Toolbox Update 3.33
+- Made it so that the /card command only deletes the previously-rolled card on a retry if the request is identical to the original request. This is to mitigate certain circumstances where created cards might be accidentally deleted.
+- Added line-tracking metadata to summary cards to serve as a redundancy in the case of several fail cases, including the ending line of a summary being edited or duplicated.
+
+Toolbox Update 3.32
+- Fixed bug where /card could generate an error when Default to Prompt Cards was set to false
+- Added safeguards against accidental card deletion during second-order summarization
+
 Toolbox Update 3.31
 - Added Mind cards to the types managed by Smart Context.
 - Tuned the instructions for Improved Story Summarization to be slightly more consistent.
