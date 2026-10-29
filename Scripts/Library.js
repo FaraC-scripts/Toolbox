@@ -1,15 +1,15 @@
-// Toolbox version 3.32
+// Toolbox version 3.34
 // Feel free to use this script however you'd like. Enjoy.
 // For more information on Toolbox, visit: https://github.com/FaraC-scripts/Toolbox/
 function toolbox(phase){
-  const VERSION = 3.33;
+  const VERSION = 3.34;
   state.toolbox ??= {};
 
   // When using Toolbox in your scenario, the only object you should change is state.toolbox.defaultSettings. Do not change any of the text in quotations; only change numbers and true|false values.
   if (state.toolbox.version !== VERSION) state.toolbox.defaultSettings = {
     "Hidden": {
       // Whether the scenario's normal opening will be replaced by one dynamically created from available prompt cards.
-      "Dynamic Opening": false
+      "Dynamic Opening": true 
     },
     "Tool": {
       // The number of tokens the AI is asked to output when using tools. Decrease for shorter outputs. Increase for longer.
@@ -42,7 +42,7 @@ function toolbox(phase){
       "Prompt Depth": 12, // How many paragraphs (lines with text on them) prompts and instructions are placed behind.
       "Instructions Behind Prompt Cards": true, // Whether instructions are placed above prompt cards or below them.
       // The remainder of these options determine whether or not certain elements of context are added by Toolbox
-      "Default Instructions": false, // Toolbox's built-in AI-instructions
+      "Default Instructions": true, // Toolbox's built-in AI-instructions
       "Prompt Cards": true, // All cards with Prompt at the start of their Type line
       "Basic Personification": true, // Basic instructions to treat characters deeply and as realistic people.
       "Advanced Personification": false, // Additional instructions added to the end of each character's story card or prompt card.
@@ -1782,18 +1782,22 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     Settings.initialize();
 
     // Replace proxy placeholders from Generate with real ones.
-    storyCards.forEach(c => {
-      c.title = c.title.replaceAll("!{", "${");
-      c.entry = c.entry.replaceAll("!{", "${");
-    });
+    if (storyCards) {
+      storyCards.forEach(c => {
+        c.title = c.title.replaceAll("!{", "${");
+        c.entry = c.entry.replaceAll("!{", "${");
+      });
+    }
 
     // Replace placeholders in story card titles
-    state.placeholders.forEach(p => {
-      storyCards.forEach(c => {
-        if (c.title.includes(`\${${p.question}}`)) 
-          c.title = c.title.replaceAll(`\${${p.question}}`, p.answer);
-      })
-    })
+    if (state.placeholders) {
+      state.placeholders.forEach(p => {
+        storyCards.forEach(c => {
+          if (c.title.includes(`\${${p.question}}`)) 
+            c.title = c.title.replaceAll(`\${${p.question}}`, p.answer);
+        })
+      });
+    }
 
     if(history.length === 0) {
       // placeholders can be large. Get rid of them to improve performance.
