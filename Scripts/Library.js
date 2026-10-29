@@ -1,8 +1,8 @@
-// Toolbox version 3.3
+// Toolbox version 3.32
 // Feel free to use this script however you'd like. Enjoy.
 // For more information on Toolbox, visit: https://github.com/FaraC-scripts/Toolbox/
 function toolbox(phase){
-  const VERSION = 3.31;
+  const VERSION = 3.33;
   state.toolbox ??= {};
 
   // When using Toolbox in your scenario, the only object you should change is state.toolbox.defaultSettings. Do not change any of the text in quotations; only change numbers and true|false values.
@@ -61,7 +61,7 @@ function toolbox(phase){
       "Paragraph Break Length": 3
     }
   }
-
+  // Past here, the code is largely undocumented and disorganized. Proceed at your peril.
   if (state.toolbox.version !== VERSION && state.toolbox.defaultSettingsOverride) {
     for (const [key, value] of Object.entries(state.toolbox.defaultSettingsOverride)){
       for (const [k, v] of Object.entries(value)){
@@ -69,7 +69,6 @@ function toolbox(phase){
       }
     }
   }
-  // Past here, the code is largely undocumented and disorganized. Proceed at your peril.
 
   if (state.toolbox.version !== VERSION) state.toolbox.truthyWords = ["y", "yes", "true", "on"];
 
@@ -912,6 +911,12 @@ Output Processing
       };
 
       if (!Object.keys(PHASE_MAP).includes(phase)) throw new Error("Invalid Phase");
+
+      if (!PHASE_MAP[phase]) {
+        this.resetState();
+        return this.getListByPhase(phase);
+      }
+
       return PHASE_MAP[phase];
     }
 
@@ -1798,7 +1803,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
         globalThis.text = getDynamicOpening();
       };
     } else {
-      Message.postFromPool("prepend", "output", "\n🧰 Toolbox Initialized\n\n");
+      state.message = "🧰 Toolbox Initialized 🧰";
     }
   }
 
@@ -1871,7 +1876,6 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
   function assembleContext() {
     if (!state.toolbox.inputOccurred) Message.resetState();
-    
     if (!state.toolbox.initialized) {
       initializeToolbox();
     };
@@ -1917,8 +1921,8 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     const imperativeIndex = getParagraphIndex(lines, -2);
     const breakPoint = getBreakPoint(lines, startingLineCount);
     const prompt = command?.prompt();
-    const lastCompressedLine = compressionEnabled 
-      ? Math.min(lines.indexOf(getLastCompressedLine()), lines.length - 2)
+    const lastCompressedLineIndex = compressionEnabled 
+      ? getLastCompressedLineIndex(lines)
       : null;
       
     let floatingPrompt;
@@ -1943,8 +1947,8 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
     if (boundaryMarkers) finalLines.push("[story begins here]");
 
-    if (lastCompressedLine) {
-      finalLines.push(...lines.slice(lastCompressedLine + 1, breakPoint));
+    if (lastCompressedLineIndex) {
+      finalLines.push(...lines.slice(lastCompressedLineIndex + 1, breakPoint));
     } else {
       finalLines.push(...lines.slice(0, breakPoint));
     }
@@ -2054,11 +2058,11 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
     if (compressionEnabled && margin <= 0 && !command && history[history.length - 1].type === "continue") {
       const minCompressionSize = getCompressionSize()*0.66;
-      const compressibleContext = [...lines.slice(lastCompressedLine + 1, breakPoint)];
+      const compressibleContext = lines.slice(lastCompressedLineIndex + 1, breakPoint);
 
       let totalCompressible = compressibleContext.reduce((agg, x) => agg += x.length, 0);
       if (totalCompressible > minCompressionSize) {
-        globalThis.text = getCompressionPrompt(compressibleContext);
+        globalThis.text = getCompressionPrompt(lastCompressedLineIndex + 1, compressibleContext);
       } else {
         const minSecondOrderCompressionSize = getSecondOrderCompressionSize()*0.5;
         const compressibleSummaries = getStorySummary(false, true);
@@ -2078,7 +2082,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
             || continueCount() - 5 >= state.toolbox.lastForcedCompression
           ) {
             state.toolbox.lastForcedCompression = continueCount();
-            globalThis.text = getCompressionPrompt(compressibleContext);
+            globalThis.text = getCompressionPrompt(lastCompressedLineIndex + 1, compressibleContext);
           }
         }
       }    
@@ -2125,8 +2129,29 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
 
   // Utilities
 
-  function getLastCompressedLine() {
-    return getLastSummaryCard()[0]?.description?.split("\n").find(l => l.startsWith("Ending Line: ")).replace("Ending Line: ", "");
+  function getLastCompressedLineIndex(lines) {
+    const card = getLastSummaryCard()[0]
+    
+    const endLine = card?.description?.split("\n").find(l => l.startsWith("Ending Line: ")).replace("Ending Line: ", "");
+    
+    const endingIndex = card?.endingIndex;
+
+    let lastCompressedLineIndex = 0;
+
+    if (endLine) {
+      if (endingIndex) {
+        const endLineCount = lines.slice(0, endingIndex + 1).filter(l => l === endLine);
+        if (endLineCount === 1) {
+          lastCompressedLineIndex = lines.findIndex(l => l === endLine);
+        } else {
+          lastCompressedLineIndex = endingIndex;
+        }
+      } else {
+        lastCompressedLineIndex = lines.findIndex(l => l === endLine);
+      }
+    }
+    
+    return lastCompressedLineIndex;
   }
 
   function getPartNumberFromCard(card) {
@@ -2198,18 +2223,19 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     return Math.min(Tool.OUTPUT_SIZE*1.33*4.95*compressionRatio, state.toolbox.maxChars - 750);
   }
 
-  function getCompressionPrompt(compressibleContext) {
+  function getCompressionPrompt(startingIndex, compressibleContext) {
     const compressionTarget = getCompressionSize();
     const compressionRatio = Settings.getValue("Context", "Compression Ratio");
 
     let sum = 0;
+    let endingIndex;
     const toCompress = [];
 
     for (let i = 0; i < compressibleContext.length; i++) {
       if (sum + compressibleContext[i].length > compressionTarget) break;
-
-        sum += compressibleContext[i].length;
-        toCompress.push(compressibleContext[i]);
+      endingIndex = startingIndex + i; 
+      sum += compressibleContext[i].length;
+      toCompress.push(compressibleContext[i]);
     }
 
     const wordCount = getWordCount(toCompress);
@@ -2230,6 +2256,7 @@ ${this.TOOLS.filter(t => t.shortText).map(t => `${t.sym} ${t.name} - /${t.comman
     }
 
     state.toolbox.wasCompressionPrompted = true;
+    state.toolbox.latestCompressionEndingIndex = endingIndex;
     const summary = getStorySummary();
     return `
 ${summary 
@@ -2286,7 +2313,7 @@ ${toCompress.join("\n")}
 
     state.toolbox.latestCompressionFirstID = firstID;
     state.toolbox.latestCompressionLastID = lastID;
-    
+    state.toolbox.latestCompressionEndingIndex = storyCards.find(c => c.id === lastId)?.endingIndex;
     state.toolbox.wasSecondOrderCompressionPrompted = true;
 
     const summary = getStorySummary(false, false, true);
@@ -2341,9 +2368,12 @@ Ending Line: ${state.toolbox.latestCompressionEndLine}`
 📝 This output can be safely deleted.`
       : `📝 Story summary created: ${card.title}`
     }\n\n`;
+    
+    card.endingIndex = state.toolbox.latestCompressionEndingIndex;
 
     state.toolbox.latestCompressionStartLine = null;
     state.toolbox.latestCompressionEndLine = null;
+    state.toolbox.latestCompressionEndingIndex = null;
     state.toolbox.wasCompressionPrompted = false;
     state.toolbox.inputOccurred = false;
   }
@@ -2366,7 +2396,8 @@ Ending Line: ${state.toolbox.latestCompressionEndLine}`
     const endingIndex = minMax(state.toolbox.latestCompressionIDs.indexOf(state.toolbox.latestCompressionLastID),0, state.toolbox.latestCompressionIDs.length - 1);
 
     for (let i = startingIndex; i <= endingIndex; i++) {
-      if (state.toolbox.latestCompressionIDs[i]) {
+      const ID = state.toolbox.latestCompressionIDs[i];
+      if (ID && storyCards.find(c => c.id === ID)?.type.toLowerCase() === "story summary") {
         removeCard(null, null, c.id);
       }
     }
@@ -2384,7 +2415,7 @@ Starting Line: ${startingLine}
 Ending Line: ${endingLine}`
     );
 
-    for (let i = endingIndex + 1; i < state.toolbox.latestCompressionIDs.length ; i++) {
+    for (let i = endingIndex + 1; i < state.toolbox.latestCompressionIDs.length; i++) {
       part++;
       if (state.toolbox.latestCompressionIDs[i])
         storyCards.find(c => c.id === state.toolbox.latestCompressionIDs[i]).title = `Part ${part} - Story Summary`
@@ -2401,8 +2432,11 @@ Ending Line: ${endingLine}`
       : `📝 Story summary created: ${card.title}`
     }\n\n`;
 
+    card.endingIndex = state.toolbox.latestCompressionEndingIndex;
+
     state.toolbox.latestCompressionFirstID = null;
     state.toolbox.latestCompressionLastID = null;
+    state.toolbox.latestCompressionEndingIndex = null;
     state.toolbox.latestCompressionIDs = null;
     state.toolbox.wasSecondOrderCompressionPrompted = false;
     state.toolbox.inputOccurred = false;
@@ -3908,7 +3942,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
       ?.split("Category:")[1]
       .trim()
       || "Uncategorized";
-    const sym = state.toolbox.cardSymbols[type.toLowerCase()];
+    const sym = type ? state.toolbox.cardSymbols[type.toLowerCase()] : null;
 
     data.title = type 
       ? `${sym ? `${sym} ` : ``}${title} - ${type}`
@@ -3917,7 +3951,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
     data.type = category;
 
     if (isStoryCard) {
-      if (state.toolbox.defaultCardTypes.includes(data.type.toLowerCase())) data.type = data.type.toLowerCase();
+      if (state.toolbox.defaultCardTypes.includes(data.type?.toLowerCase())) data.type = data.type?.toLowerCase();
     } else {
       data.type = `Prompt - ${data.type}`;  
     };
@@ -3926,7 +3960,7 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
       .filter(l => Boolean && !["Title:", "Category:", "Type:", "Triggers:"].some(x => l.startsWith(x)))
       .join("\n");
 
-    if (isStoryCard) data.entry = `{\n${data.title} - ${data.type[0].toUpperCase() + data.type.slice(1)}\n${data.entry.trim()}\n}`;
+    if (isStoryCard) data.entry = `{\n${data.title} - ${data.type[0]?.toUpperCase() + data.type?.slice(1)}\n${data.entry?.trim()}\n}`;
 
 
     if (!isStoryCard) {
@@ -3982,8 +4016,8 @@ ${Settings.getValue("Context", "Boundary Markers") ? "🟢" : "🔴"} Boundary M
 📝 If you edit the text below and take a forward action (Do, Say, Continue) that card will be updated to match the edited text.\n` : ""}
 ${globalThis.text}`;
 
-    if (state.toolbox.tempCardData?.count === continueCount()) {
-      removeCard(null, null, state.toolbox.tempCardData.id)
+    if (state.toolbox.tempCardData?.count === continueCount() && state.toolbox.tempCardData?.request === command.request) {
+      removeCard(null, null, state.toolbox.tempCardData.id);
     }
 
     const card = newCard(
@@ -3994,7 +4028,7 @@ ${globalThis.text}`;
       triggers
     );
 
-    state.toolbox.tempCardData = {id: card.id, count: continueCount()};
+    state.toolbox.tempCardData = {id: card.id, count: continueCount(), request: command.request};
 
     updatePromptSequenceCard();
   }
