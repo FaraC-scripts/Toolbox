@@ -2402,7 +2402,7 @@ Ending Line: ${state.toolbox.latestCompressionEndLine}`
     for (let i = startingIndex; i <= endingIndex; i++) {
       const ID = state.toolbox.latestCompressionIDs[i];
       if (ID && storyCards.find(c => c.id === ID)?.type.toLowerCase() === "story summary") {
-        removeCard(null, null, c.id);
+        removeCard(null, null, ID);
       }
     }
 
