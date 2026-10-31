@@ -9,7 +9,7 @@ function toolbox(phase){
   if (state.toolbox.version !== VERSION) state.toolbox.defaultSettings = {
     "Hidden": {
       // Whether the scenario's normal opening will be replaced by one dynamically created from available prompt cards.
-      "Dynamic Opening": true 
+      "Dynamic Opening": false 
     },
     "Tool": {
       // The number of tokens the AI is asked to output when using tools. Decrease for shorter outputs. Increase for longer.
@@ -42,7 +42,7 @@ function toolbox(phase){
       "Prompt Depth": 12, // How many paragraphs (lines with text on them) prompts and instructions are placed behind.
       "Instructions Behind Prompt Cards": true, // Whether instructions are placed above prompt cards or below them.
       // The remainder of these options determine whether or not certain elements of context are added by Toolbox
-      "Default Instructions": true, // Toolbox's built-in AI-instructions
+      "Default Instructions": false, // Toolbox's built-in AI-instructions
       "Prompt Cards": true, // All cards with Prompt at the start of their Type line
       "Basic Personification": true, // Basic instructions to treat characters deeply and as realistic people.
       "Advanced Personification": false, // Additional instructions added to the end of each character's story card or prompt card.
