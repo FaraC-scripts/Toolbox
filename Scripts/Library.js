@@ -9,7 +9,7 @@ function toolbox(phase){
   if (state.toolbox.version !== VERSION) state.toolbox.defaultSettings = {
     "Hidden": {
       // Whether the scenario's normal opening will be replaced by one dynamically created from available prompt cards.
-      "Dynamic Opening": false 
+      "Dynamic Opening": false
     },
     "Tool": {
       // The number of tokens the AI is asked to output when using tools. Decrease for shorter outputs. Increase for longer.
@@ -2317,7 +2317,7 @@ ${toCompress.join("\n")}
 
     state.toolbox.latestCompressionFirstID = firstID;
     state.toolbox.latestCompressionLastID = lastID;
-    state.toolbox.latestCompressionEndingIndex = storyCards.find(c => c.id === lastId)?.endingIndex;
+    state.toolbox.latestCompressionEndingIndex = storyCards.find(c => c.id === lastID)?.endingIndex;
     state.toolbox.wasSecondOrderCompressionPrompted = true;
 
     const summary = getStorySummary(false, false, true);
